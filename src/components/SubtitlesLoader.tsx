@@ -43,11 +43,9 @@ const parseSRT = (content: string): Subtitle[] => {
 };
 
 const SutitlesLoader: React.FC = () => {
-  const { subtitles, setSubtitles } = useSubtitles();
+  const { setSubtitles } = useSubtitles();
 
   const [error, setError] = useState<string>("");
-
-  console.log("subtitles", subtitles);
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>): void => {
     const files = event.target.files;

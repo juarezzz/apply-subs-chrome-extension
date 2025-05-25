@@ -3,8 +3,9 @@
   "name": "Subtitles Display",
   "version": "1.0.0",
   "description": "Load and display subtitles from .srt files.",
-  "permissions": ["storage"],
+  "permissions": ["scripting", "activeTab"],
   "action": {
     "default_popup": "index.html"
-  }
+  },
+  "host_permissions": ["<all_urls>"]
 }
