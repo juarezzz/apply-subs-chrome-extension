@@ -3,6 +3,5 @@ export const getVideoElements = () => {
 
   return [...videoElements].map((videoElement) => ({
     id: videoElement.id,
-    src: videoElement.src,
   }));
 };
