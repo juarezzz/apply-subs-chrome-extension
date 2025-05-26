@@ -1,5 +1,6 @@
 import React, { useState, ChangeEvent } from "react";
-import { useSubtitles } from "../context/subtitles";
+import { useSubtitles } from "../../context/subtitles";
+import { FileInput } from "../FileInput";
 
 interface Subtitle {
   start: number; // seconds
@@ -90,12 +91,12 @@ const SutitlesLoader: React.FC = () => {
 
   return (
     <div>
-      <h2>SRT File Parser</h2>
-
-      <div>
-        <input type="file" accept=".srt" onChange={handleFileUpload} />
-        {error && <p>{error}</p>}
-      </div>
+      <FileInput
+        onFilesSelected={(files) => {
+          console.log("Files selected:", files);
+        }}
+      />
+      {error && <p>{error}</p>}
     </div>
   );
 };

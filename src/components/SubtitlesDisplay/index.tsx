@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { getVideoElements } from "../scripts/getVideoElements";
-import { useSubtitles } from "../context/subtitles";
+import { getVideoElements } from "../../scripts/getVideoElements";
+import { useSubtitles } from "../../context/subtitles";
 
 async function getCurrentTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -9,11 +8,8 @@ async function getCurrentTab() {
 
 export const SubtitlesDisplay = () => {
   const { subtitles } = useSubtitles();
-  const [loading, setLoading] = useState<boolean>(false);
 
   const handleShowSubtitles = async () => {
-    setLoading(true);
-
     try {
       const { id: tabId } = await getCurrentTab();
 
@@ -57,18 +53,14 @@ export const SubtitlesDisplay = () => {
         },
         { frameId: selectedVideo.frameId }
       );
-
-      console.log("Subtitles sent to video element:", subtitles);
     } catch (error) {
       console.error("Error fetching video elements:", error);
     }
-
-    setLoading(false);
   };
 
   return (
     <div>
-      <button onClick={handleShowSubtitles}>Show subtitles</button>
+      {/* <button onClick={handleShowSubtitles}>Show subtitles</button> */}
     </div>
   );
 };
