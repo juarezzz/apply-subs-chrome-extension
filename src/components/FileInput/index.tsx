@@ -1,6 +1,7 @@
 import React, { useState, useRef, DragEvent, ChangeEvent } from "react";
 import { Upload } from "lucide-react";
 import styles from "./styles.module.css";
+import { ErrorMessage } from "../ErrorMessage";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
@@ -46,6 +47,16 @@ export const FileInput: React.FC<FileInputProps> = ({ onFilesSelected }) => {
       };
     }
 
+    const invalidTypeFiles = fileList.filter(
+      (file) => !file.name.toLowerCase().endsWith(".srt")
+    );
+    if (invalidTypeFiles.length > 0) {
+      return {
+        valid: [],
+        error: "Only .srt files are accepted",
+      };
+    }
+
     return { valid: fileList };
   };
 
@@ -56,6 +67,12 @@ export const FileInput: React.FC<FileInputProps> = ({ onFilesSelected }) => {
     setError("");
 
     const droppedFiles = Array.from(e.dataTransfer.files);
+
+    if (droppedFiles.length > 1) {
+      setError("Please drop only one file at a time");
+      return;
+    }
+
     const { valid, error } = validateFiles(droppedFiles);
 
     if (error) {
@@ -106,7 +123,6 @@ export const FileInput: React.FC<FileInputProps> = ({ onFilesSelected }) => {
           ref={fileInputRef}
           type="file"
           accept={".srt"}
-          multiple
           onChange={handleFileSelect}
           className={styles.hiddenInput}
         />
@@ -127,11 +143,7 @@ export const FileInput: React.FC<FileInputProps> = ({ onFilesSelected }) => {
         </div>
       </div>
 
-      {error && (
-        <div className={styles.errorContainer}>
-          <p className={styles.errorText}>{error}</p>
-        </div>
-      )}
+      <ErrorMessage error={error} setError={setError} />
     </div>
   );
 };

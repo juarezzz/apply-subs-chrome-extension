@@ -49,17 +49,3 @@
 .subText {
   font-size: 14px;
 }
-
-.errorContainer {
-  margin-top: 16px;
-  padding: 12px;
-  background-color: #fee2e2;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-}
-
-.errorText {
-  font-size: 14px;
-  color: #b91c1c;
-  margin: 0;
-}
