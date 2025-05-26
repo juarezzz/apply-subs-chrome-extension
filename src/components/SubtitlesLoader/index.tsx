@@ -5,7 +5,7 @@ import { ErrorMessage } from "../ErrorMessage";
 import { useStoredFiles } from "../../context/storedFiles";
 import { parseSRT } from "../../utils/parseSRT";
 
-export const SubtitlesLoader: React.FC = () => {
+export const SubtitlesLoader = () => {
   const { setSubtitles } = useSubtitles();
   const { saveFile } = useStoredFiles();
 

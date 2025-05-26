@@ -1,0 +1,66 @@
+.container {
+  margin-top: 24px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #f5f5f5;
+}
+
+.filesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fileItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.fileItem:hover {
+  background-color: #2a2a2a;
+}
+
+.fileInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #f5f5f5;
+  margin-bottom: 4px;
+  word-break: break-word;
+}
+
+.fileDetails {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.deleteButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+}
+
+.deleteIcon {
+  width: 16px;
+  height: 16px;
+}

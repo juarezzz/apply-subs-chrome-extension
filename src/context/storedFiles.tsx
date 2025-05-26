@@ -20,8 +20,9 @@ type StoredFilesList = Omit<StoredFile, "content">[];
 
 interface StoredFilesContextType {
   storedFiles: StoredFilesList;
-  saveFile: (params: saveFileParams) => Promise<void>;
   filesLoading: boolean;
+  saveFile: (params: saveFileParams) => Promise<void>;
+  removeFile: (id: string) => Promise<void>;
 }
 
 interface saveFileParams {
@@ -50,7 +51,6 @@ export const StoredFilesProvider = ({ children }: { children: ReactNode }) => {
     chrome.storage.local
       .get("filesList")
       .then((result) => {
-        console.log("Fetched stored files:", JSON.stringify(result));
         const filesList = result.filesList || [];
         setStoredFiles(filesList);
       })
@@ -87,13 +87,26 @@ export const StoredFilesProvider = ({ children }: { children: ReactNode }) => {
     [storedFiles]
   );
 
+  const removeFile = useCallback(
+    async (id: string) => {
+      const updatedFilesList = storedFiles.filter((file) => file.id !== id);
+      await chrome.storage.local.remove([id]);
+      await chrome.storage.local.set({
+        filesList: updatedFilesList,
+      });
+      setStoredFiles(updatedFilesList);
+    },
+    [storedFiles]
+  );
+
   const value = useMemo(
     () => ({
       storedFiles,
       saveFile,
       filesLoading,
+      removeFile,
     }),
-    [storedFiles, saveFile, filesLoading]
+    [storedFiles, saveFile, filesLoading, removeFile]
   );
 
   return (
