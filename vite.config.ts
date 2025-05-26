@@ -18,14 +18,15 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        popup: resolve(__dirname, "index.html"),
+        sidePanel: resolve(__dirname, "index.html"),
         content: resolve(__dirname, "src/scripts/content.ts"),
+        background: resolve(__dirname, "src/scripts/background.ts"),
       },
       output: {
         entryFileNames: (chunkInfo) => {
-          if (chunkInfo.name === "content") {
+          if (chunkInfo.name === "content" || chunkInfo.name === "background")
             return "[name].js";
-          }
+
           return "assets/[name]-[hash].js";
         },
       },
