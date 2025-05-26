@@ -2,16 +2,16 @@ import React, { useState, ChangeEvent } from "react";
 import { useSubtitles } from "../context/subtitles";
 
 interface Subtitle {
-  start: number;
-  end: number;
+  start: number; // seconds
+  end: number; // seconds
   text: string;
 }
 
-const timeToMs = (timeString: string): number => {
+const timeToSeconds = (timeString: string): number => {
   const [time, ms] = timeString.split(",");
   const [hours, minutes, seconds] = time.split(":").map(Number);
 
-  return hours * 3600000 + minutes * 60000 + seconds * 1000 + parseInt(ms, 10);
+  return hours * 3600 + minutes * 60 + seconds + parseInt(ms, 10) / 1000;
 };
 
 const parseSRT = (content: string): Subtitle[] => {
@@ -34,8 +34,8 @@ const parseSRT = (content: string): Subtitle[] => {
       const text = lines.slice(2).join("\n");
 
       return {
-        start: timeToMs(start),
-        end: timeToMs(end),
+        start: timeToSeconds(start),
+        end: timeToSeconds(end),
         text: text,
       };
     })

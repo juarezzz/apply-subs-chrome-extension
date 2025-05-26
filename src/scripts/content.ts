@@ -36,6 +36,8 @@ class SubtitlesManager {
     }
 
     this.addSubtitleElement();
+
+    this.attachEventListeners();
   }
 
   private addSubtitleElement() {
@@ -45,21 +47,21 @@ class SubtitlesManager {
 
     if (!videoContainer) return false;
 
-    const { height } = this.video.getBoundingClientRect();
-    const top = height - DEFAULT_OFFSET;
-
     this.subtitleElement = document.createElement("div");
     this.subtitleElement.style.cssText = `
       position: absolute;
-      top: ${top}px;
       left: 50%;
       transform: translateX(-50%);
       color: white;
       font-size: 24px;
+      text-align: center;
       z-index: 999999999;
     `;
     this.subtitleElement.id = "subtitle-element";
-    this.subtitleElement.textContent = "This is a subtitle placeholder";
+
+    this.updateSubtitlePosition();
+
+    this.updateSubtitleContent();
 
     // Check if container has relative/absolute positioning
     const containerStyle = window.getComputedStyle(videoContainer);
@@ -68,6 +70,48 @@ class SubtitlesManager {
       videoContainer.style.position = "relative";
 
     videoContainer.appendChild(this.subtitleElement);
+  }
+
+  private attachEventListeners() {
+    if (!this.video) return false;
+
+    this.video.addEventListener(
+      "timeupdate",
+      this.updateSubtitleContent.bind(this)
+    );
+
+    const resizeObserver = new ResizeObserver(() => {
+      this.updateSubtitlePosition();
+    });
+
+    resizeObserver.observe(this.video);
+  }
+
+  private updateSubtitlePosition() {
+    if (!this.subtitleElement || !this.video) return false;
+
+    const { height } = this.video.getBoundingClientRect();
+
+    const top = height - DEFAULT_OFFSET;
+
+    this.subtitleElement.style.top = `${top}px`;
+  }
+
+  private updateSubtitleContent() {
+    if (!this.subtitleElement || !this.video) return false;
+
+    const currentTime = this.video.currentTime;
+
+    const currentSubtitle = this.subtitles.find(
+      (sub) => sub.start <= currentTime && sub.end >= currentTime
+    );
+
+    if (currentSubtitle) {
+      this.subtitleElement.textContent = currentSubtitle.text;
+      this.subtitleElement.style.display = "block";
+    } else {
+      this.subtitleElement.style.display = "none";
+    }
   }
 
   private findTargetVideo(target: VideoTarget): HTMLVideoElement | null {
