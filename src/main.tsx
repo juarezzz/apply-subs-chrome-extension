@@ -12,7 +12,7 @@ createRoot(document.getElementById("root")!).render(
     <StoredFilesProvider>
       <SubtitlesProvider>
         <SubtitlesLoader />
-        {/* <SelectVideo /> */}
+        <SelectVideo />
         <FileList />
       </SubtitlesProvider>
     </StoredFilesProvider>

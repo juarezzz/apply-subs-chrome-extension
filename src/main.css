@@ -1,11 +1,24 @@
+:root {
+  --background-color: #121212;
+  --primary-color: #1e1e1e;
+  --secondary-color: #fefefe;
+  --border-color: #333333;
+  --hover-bg-color: #2a2a2a;
+  --error-bg-color: #fee2e2;
+  --error-border-color: #fecaca;
+  --error-text-color: #b91c1c;
+  --text-light: #9ca3af;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: Ubuntu, Verdana, Arial, sans-serif;
 }
 
 body {
-  background-color: #121212;
-  color: #f5f5f5;
+  background-color: var(--background-color);
+  color: var(--secondary-color);
   padding: 16px;
 }

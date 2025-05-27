@@ -53,7 +53,7 @@ export const FileInput: React.FC<FileInputProps> = ({ onFilesSelected }) => {
     if (invalidTypeFiles.length > 0) {
       return {
         valid: [],
-        error: "Only .srt files are accepted",
+        error: "Only .srt files are supported",
       };
     }
 

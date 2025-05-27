@@ -1,8 +1,8 @@
 .errorContainer {
   margin-top: 16px;
   padding: 12px;
-  background-color: #fee2e2;
-  border: 1px solid #fecaca;
+  background-color: var(--error-bg-color);
+  border: 1px solid var(--error-border-color);
   border-radius: 6px;
 
   display: flex;
@@ -12,12 +12,12 @@
 
 .errorText {
   font-size: 14px;
-  color: #b91c1c;
+  color: var(--error-text-color);
   margin: 0;
 }
 
 .closeButton {
-  color: #b91c1c;
+  color: var(--error-text-color);
   cursor: pointer;
   width: 16px;
   height: 16px;
