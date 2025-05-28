@@ -4,6 +4,7 @@ import { FileInput } from "../FileInput";
 import { ErrorMessage } from "../ErrorMessage";
 import { useStoredFiles } from "../../context/storedFiles";
 import { parseSRT } from "../../utils/parseSRT";
+import { Title } from "../Title";
 
 export const SubtitlesLoader = () => {
   const { setSubtitles } = useSubtitles();
@@ -64,6 +65,7 @@ export const SubtitlesLoader = () => {
 
   return (
     <div>
+      <Title>Subtitles</Title>
       <FileInput onFilesSelected={handleFilesSelected} />
       <ErrorMessage error={error} setError={setError} />
     </div>

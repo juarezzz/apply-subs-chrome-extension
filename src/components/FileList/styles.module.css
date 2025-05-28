@@ -2,12 +2,6 @@
   margin-top: 24px;
 }
 
-.title {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 16px;
-}
-
 .filesList {
   display: flex;
   flex-direction: column;
@@ -16,6 +10,7 @@
 
 .fileItem {
   display: flex;
+  cursor: pointer;
   justify-content: space-between;
   align-items: center;
   padding: 12px;
@@ -47,18 +42,15 @@
 }
 
 .deleteButton {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: var(--text-light);
+  transition: color 0.2s ease;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 
-.deleteIcon {
-  width: 16px;
-  height: 16px;
+.deleteButton:hover {
+  color: var(--secondary-color);
 }

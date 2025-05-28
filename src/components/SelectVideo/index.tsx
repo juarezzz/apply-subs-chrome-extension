@@ -4,6 +4,7 @@ import { useSubtitles } from "../../context/subtitles";
 import styles from "./styles.module.css";
 import { RefreshCcw } from "lucide-react";
 import { IconButton } from "../IconButton";
+import { Title } from "../Title";
 
 interface VideoElement {
   videoId: string;
@@ -99,23 +100,22 @@ export const SelectVideo = () => {
   return (
     <div className={styles.container}>
       <div className={styles.videosSection}>
-        <div className={styles.header}>
-          <h3 className={styles.videosTitle}>
+        <Title>
+          <div className={styles.header}>
             Videos on the page ({videoElements.length})
-          </h3>
-
-          <IconButton
-            onClick={() => {
-              setAnimate(true);
-              detectVideoElements();
-            }}
-            disabled={isScanning}
-            onAnimationEnd={() => setAnimate(false)}
-            className={`${animate ? styles.spin : ""}`}
-          >
-            <RefreshCcw />
-          </IconButton>
-        </div>
+            <IconButton
+              onClick={() => {
+                setAnimate(true);
+                detectVideoElements();
+              }}
+              disabled={isScanning}
+              onAnimationEnd={() => setAnimate(false)}
+              className={`${animate ? styles.spin : ""}`}
+            >
+              <RefreshCcw />
+            </IconButton>
+          </div>
+        </Title>
 
         <div className={styles.videosList}>
           {videoElements.map((video, index) => (

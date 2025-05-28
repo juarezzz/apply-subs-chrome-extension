@@ -1,5 +1,5 @@
 .errorContainer {
-  margin-top: 16px;
+  margin: 16px 0px;
   padding: 12px;
   background-color: var(--error-bg-color);
   border: 1px solid var(--error-border-color);

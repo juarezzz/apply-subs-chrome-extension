@@ -11,8 +11,8 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <StoredFilesProvider>
       <SubtitlesProvider>
-        <SubtitlesLoader />
         <SelectVideo />
+        <SubtitlesLoader />
         <FileList />
       </SubtitlesProvider>
     </StoredFilesProvider>

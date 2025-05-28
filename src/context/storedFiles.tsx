@@ -23,6 +23,7 @@ interface StoredFilesContextType {
   filesLoading: boolean;
   saveFile: (params: saveFileParams) => Promise<void>;
   removeFile: (id: string) => Promise<void>;
+  getFile: (id: string) => Promise<StoredFile | undefined>;
 }
 
 interface saveFileParams {
@@ -99,14 +100,20 @@ export const StoredFilesProvider = ({ children }: { children: ReactNode }) => {
     [storedFiles]
   );
 
+  const getFile = useCallback(async (id: string) => {
+    const file = await chrome.storage.local.get(id);
+    return file[id] as StoredFile | undefined;
+  }, []);
+
   const value = useMemo(
     () => ({
       storedFiles,
       saveFile,
       filesLoading,
       removeFile,
+      getFile,
     }),
-    [storedFiles, saveFile, filesLoading, removeFile]
+    [storedFiles, saveFile, filesLoading, removeFile, getFile]
   );
 
   return (
