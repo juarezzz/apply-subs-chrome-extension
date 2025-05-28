@@ -30,7 +30,7 @@ export const toggleVideoHighlight = ({
   }
 
   if (toggle === "off") {
-    const existingHighlight = videoContainer.querySelector(
+    const existingHighlight = document.querySelector(
       "#video-highlight-element"
     );
     if (existingHighlight) videoContainer.removeChild(existingHighlight);
@@ -49,7 +49,7 @@ export const toggleVideoHighlight = ({
 
   const containerStyle = window.getComputedStyle(videoContainer);
 
-  if (["absolute", "relative", "sticky"].includes(containerStyle.position))
+  if (!["absolute", "relative", "sticky"].includes(containerStyle.position))
     videoContainer.style.position = "relative";
 
   const { height: containerHeight, width: containerWidth } =
