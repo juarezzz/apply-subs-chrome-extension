@@ -20,5 +20,5 @@
 body {
   background-color: var(--background-color);
   color: var(--secondary-color);
-  padding: 16px;
+  padding: 6px 16px;
 }

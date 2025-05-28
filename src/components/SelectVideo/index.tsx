@@ -5,6 +5,7 @@ import styles from "./styles.module.css";
 import { RefreshCcw } from "lucide-react";
 import { IconButton } from "../IconButton";
 import { Title } from "../Title";
+import { ListItem } from "../ListItem";
 
 interface VideoElement {
   videoId: string;
@@ -119,18 +120,13 @@ export const SelectVideo = () => {
 
         <div className={styles.videosList}>
           {videoElements.map((video, index) => (
-            <div
+            <ListItem
               key={index}
               onClick={() => handleVideoSelection(video)}
-              className={`${styles.videoItem} ${
-                selectedVideo === video ? styles.selected : ""
-              }`}
-            >
-              <div className={styles.videoTitle}>{video.title}</div>
-              <div className={styles.videoDetails}>
-                Origin: {video.origin || "Unknown"}
-              </div>
-            </div>
+              selected={selectedVideo === video}
+              title={video.title || `Video ${index + 1}`}
+              details={`Origin: ${video.origin || "Unknown"}`}
+            />
           ))}
         </div>
 

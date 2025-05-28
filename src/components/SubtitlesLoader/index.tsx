@@ -65,7 +65,9 @@ export const SubtitlesLoader = () => {
 
   return (
     <div>
-      <Title>Subtitles</Title>
+      <Title subtitle="Select one of your uploaded files or upload a new one">
+        Subtitles
+      </Title>
       <FileInput onFilesSelected={handleFilesSelected} />
       <ErrorMessage error={error} setError={setError} />
     </div>
