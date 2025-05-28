@@ -66,7 +66,7 @@ class SubtitlesManager {
     // Check if container has relative/absolute positioning
     const containerStyle = window.getComputedStyle(videoContainer);
 
-    if (containerStyle.position === "static")
+    if (["absolute", "relative", "sticky"].includes(containerStyle.position))
       videoContainer.style.position = "relative";
 
     videoContainer.appendChild(this.subtitleElement);

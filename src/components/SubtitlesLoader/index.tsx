@@ -1,13 +1,16 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { X } from "lucide-react";
 import { useSubtitles } from "../../context/subtitles";
 import { FileInput } from "../FileInput";
 import { ErrorMessage } from "../ErrorMessage";
 import { useStoredFiles } from "../../context/storedFiles";
 import { parseSRT } from "../../utils/parseSRT";
 import { Title } from "../Title";
+import { ListItem } from "../ListItem";
+import styles from "./styles.module.css";
 
 export const SubtitlesLoader = () => {
-  const { setSubtitles } = useSubtitles();
+  const { selectedFile, setSelectedFile } = useSubtitles();
   const { saveFile } = useStoredFiles();
 
   const [error, setError] = useState<string>("");
@@ -29,21 +32,19 @@ export const SubtitlesLoader = () => {
           throw new Error("Failed to read file content as string");
         }
 
-        const fileContent = parseSRT(content);
-        setSubtitles(fileContent);
-
         setError("");
 
-        saveFile({
+        const newFile = await saveFile({
           name: file.name,
           size: file.size,
           content,
-        }).catch((err) => {
-          setError(
-            `Error saving file: ${
-              err instanceof Error ? err.message : "Unknown error"
-            }`
-          );
+        });
+
+        const subtitles = parseSRT(content);
+
+        setSelectedFile({
+          ...newFile,
+          content: subtitles,
         });
       } catch (err) {
         setError(
@@ -51,13 +52,11 @@ export const SubtitlesLoader = () => {
             err instanceof Error ? err.message : "Unknown error"
           }`
         );
-        setSubtitles([]);
       }
     };
 
     reader.onerror = () => {
       setError("Error reading file");
-      setSubtitles([]);
     };
 
     reader.readAsText(file);
@@ -68,6 +67,21 @@ export const SubtitlesLoader = () => {
       <Title subtitle="Select one of your uploaded files or upload a new one">
         Subtitles
       </Title>
+      {selectedFile && (
+        <div className={styles.selectedFile}>
+          <span>Selected:</span>
+          <ListItem
+            title={selectedFile.name}
+            selected
+            button={{
+              icon: X,
+              onClick: () => {
+                setSelectedFile(undefined);
+              },
+            }}
+          />
+        </div>
+      )}
       <FileInput onFilesSelected={handleFilesSelected} />
       <ErrorMessage error={error} setError={setError} />
     </div>

@@ -6,6 +6,7 @@ import { RefreshCcw } from "lucide-react";
 import { IconButton } from "../IconButton";
 import { Title } from "../Title";
 import { ListItem } from "../ListItem";
+import { toggleVideoHighlight } from "../../scripts/toggleVideoHighlight";
 
 interface VideoElement {
   videoId: string;
@@ -21,7 +22,7 @@ async function getCurrentTab() {
 }
 
 export const SelectVideo = () => {
-  const { subtitles } = useSubtitles();
+  const { selectedFile } = useSubtitles();
   const [videoElements, setVideoElements] = useState<VideoElement[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<VideoElement>();
   const [isScanning, setIsScanning] = useState(false);
@@ -67,6 +68,40 @@ export const SelectVideo = () => {
     }
   };
 
+  const handleMouseEnter = async (video: VideoElement) => {
+    if (!video) return;
+
+    const { id: tabId } = await getCurrentTab();
+
+    if (!tabId) {
+      console.error("No active tab found");
+      return;
+    }
+
+    chrome.scripting.executeScript({
+      target: { tabId, frameIds: [video.frameId] },
+      func: toggleVideoHighlight,
+      args: [{ toggle: "on", ...video }],
+    });
+  };
+
+  const handleMouseLeave = async (video: VideoElement) => {
+    if (!video) return;
+
+    const { id: tabId } = await getCurrentTab();
+
+    if (!tabId) {
+      console.error("No active tab found");
+      return;
+    }
+
+    chrome.scripting.executeScript({
+      target: { tabId, frameIds: [video.frameId] },
+      func: toggleVideoHighlight,
+      args: [{ toggle: "off", ...video }],
+    });
+  };
+
   const handleShowSubtitles = async () => {
     const { id: tabId } = await getCurrentTab();
 
@@ -75,7 +110,7 @@ export const SelectVideo = () => {
       return;
     }
 
-    if (!selectedVideo) return;
+    if (!selectedVideo || !selectedFile) return;
 
     await chrome.tabs.sendMessage(
       tabId,
@@ -86,7 +121,7 @@ export const SelectVideo = () => {
           videoIndex: selectedVideo.videoIndex,
           frameId: selectedVideo.frameId,
         },
-        subtitles,
+        subtitles: selectedFile.content,
       },
       { frameId: selectedVideo.frameId }
     );
@@ -101,7 +136,7 @@ export const SelectVideo = () => {
   return (
     <div className={styles.container}>
       <div className={styles.videosSection}>
-        <Title>
+        <Title subtitle="Select a video element from the page to show subtitles">
           <div className={styles.header}>
             Videos on the page ({videoElements.length})
             <IconButton
@@ -126,6 +161,8 @@ export const SelectVideo = () => {
               selected={selectedVideo === video}
               title={video.title || `Video ${index + 1}`}
               details={`Origin: ${video.origin || "Unknown"}`}
+              onMouseEnter={() => handleMouseEnter(video)}
+              onMouseLeave={() => handleMouseLeave(video)}
             />
           ))}
         </div>
@@ -134,8 +171,9 @@ export const SelectVideo = () => {
           <button
             onClick={handleShowSubtitles}
             className={styles.showSubtitlesButton}
+            disabled={!selectedFile}
           >
-            Show Subtitles on Selected Video
+            {!selectedFile ? "Select subtitles" : "Show Subtitles"}
           </button>
         )}
       </div>

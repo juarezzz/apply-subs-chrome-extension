@@ -21,7 +21,7 @@ export const FileList = () => {
   const [error, setError] = useState("");
   const { storedFiles, removeFile, getFile } = useStoredFiles();
 
-  const { setSubtitles } = useSubtitles();
+  const { setSelectedFile } = useSubtitles();
 
   const handleSelectFile = async (fileId: string) => {
     const selectedFile = await getFile(fileId);
@@ -30,7 +30,7 @@ export const FileList = () => {
       console.error("File not found:", fileId);
 
       setError(
-        "Could not retrive selected file! Please try again or reupload the file."
+        "Could not retrieve selected file! Please try again or reupload the file."
       );
 
       return;
@@ -38,7 +38,10 @@ export const FileList = () => {
 
     const subtitles = parseSRT(selectedFile.content);
 
-    setSubtitles(subtitles);
+    setSelectedFile({
+      ...selectedFile,
+      content: subtitles,
+    });
   };
 
   if (storedFiles.length === 0) return null;

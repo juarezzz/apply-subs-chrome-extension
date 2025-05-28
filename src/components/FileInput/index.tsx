@@ -97,6 +97,10 @@ export const FileInput: React.FC<FileInputProps> = ({ onFilesSelected }) => {
 
       onFilesSelected(valid);
     }
+
+    // Reset the input value to allow re-uploading the same file
+    e.target.files = null;
+    e.target.value = "";
   };
 
   const handleClick = () => {

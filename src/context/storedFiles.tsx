@@ -8,7 +8,7 @@ import {
   useMemo,
 } from "react";
 
-interface StoredFile {
+export interface StoredFile {
   id: string;
   name: string;
   content: string;
@@ -21,7 +21,7 @@ type StoredFilesList = Omit<StoredFile, "content">[];
 interface StoredFilesContextType {
   storedFiles: StoredFilesList;
   filesLoading: boolean;
-  saveFile: (params: saveFileParams) => Promise<void>;
+  saveFile: (params: saveFileParams) => Promise<StoredFile>;
   removeFile: (id: string) => Promise<void>;
   getFile: (id: string) => Promise<StoredFile | undefined>;
 }
@@ -84,6 +84,8 @@ export const StoredFilesProvider = ({ children }: { children: ReactNode }) => {
       });
 
       setStoredFiles(newFilesList);
+
+      return newFile;
     },
     [storedFiles]
   );

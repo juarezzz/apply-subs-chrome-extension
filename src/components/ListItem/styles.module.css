@@ -34,6 +34,7 @@
 .button {
   color: var(--text-light);
   transition: color 0.2s ease;
+  padding: 8px;
 
   svg {
     width: 16px;

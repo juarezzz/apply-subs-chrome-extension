@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from "react";
+import { StoredFile } from "./storedFiles";
 
 export interface Subtitle {
   start: number;
@@ -6,9 +7,13 @@ export interface Subtitle {
   text: string;
 }
 
+interface SubtitleFile extends Omit<StoredFile, "content"> {
+  content: Subtitle[];
+}
+
 interface SubtitlesContextType {
-  subtitles: Subtitle[];
-  setSubtitles: (subs: Subtitle[]) => void;
+  selectedFile?: SubtitleFile;
+  setSelectedFile: (file: SubtitleFile | undefined) => void;
 }
 
 const SubtitlesContext = createContext<SubtitlesContextType | undefined>(
@@ -24,10 +29,10 @@ export const useSubtitles = () => {
 };
 
 export const SubtitlesProvider = ({ children }: { children: ReactNode }) => {
-  const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
+  const [selectedFile, setSelectedFile] = useState<SubtitleFile>();
 
   return (
-    <SubtitlesContext.Provider value={{ subtitles, setSubtitles }}>
+    <SubtitlesContext.Provider value={{ selectedFile, setSelectedFile }}>
       {children}
     </SubtitlesContext.Provider>
   );
