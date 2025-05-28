@@ -18,7 +18,7 @@ interface SubtitleMessage {
   visible?: boolean;
 }
 
-const DEFAULT_OFFSET = 0.15; // % from video height
+const DEFAULT_OFFSET = 50; // px
 
 class SubtitlesManager {
   private subtitles: Subtitle[] = [];
@@ -62,6 +62,7 @@ class SubtitlesManager {
       font-family: Arial, sans-serif;
       font-weight: bold;
       line-height: 1.2;
+      word-wrap: break-word;
     `;
     this.subtitleElement.id = "subtitle-element";
 
@@ -164,13 +165,13 @@ class SubtitlesManager {
     try {
       const videoRect = this.video.getBoundingClientRect();
 
-      const subtitleTop =
-        videoRect.bottom - DEFAULT_OFFSET * videoRect.height + window.scrollY;
+      const subtitleTop = videoRect.bottom - DEFAULT_OFFSET + window.scrollY;
       const subtitleLeft = videoRect.left + videoRect.width / 2;
 
       this.subtitleElement.style.top = `${subtitleTop}px`;
       this.subtitleElement.style.left = `${subtitleLeft}px`;
-      this.subtitleElement.style.transform = "translateX(-50%)";
+      this.subtitleElement.style.transform =
+        "translateX(-50%) translateY(-100%)";
 
       return true;
     } catch (error) {
