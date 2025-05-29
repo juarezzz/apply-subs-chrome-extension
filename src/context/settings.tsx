@@ -19,7 +19,7 @@ export interface SubtitleSettings {
   padding: number; // in pixels
 }
 
-const DEFAULT_SETTINGS: SubtitleSettings = {
+export const DEFAULT_SETTINGS: SubtitleSettings = {
   fontSize: 24,
   fontColor: "#ffffff",
   background: false,

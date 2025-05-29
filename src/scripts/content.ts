@@ -1,4 +1,5 @@
 import { Subtitle } from "../context/subtitles";
+import { SubtitleSettings } from "../context/settings";
 
 interface VideoTarget {
   frameId: number;
@@ -12,13 +13,13 @@ interface SubtitleMessage {
     | "ADD_SUBTITLES"
     | "UPDATE_SUBTITLES"
     | "TOGGLE_SUBTITLES"
-    | "DESTROY_SUBTITLES";
+    | "DESTROY_SUBTITLES"
+    | "UPDATE_SUBTITLE_SETTINGS";
   target?: VideoTarget;
   subtitles?: Subtitle[];
   visible?: boolean;
+  settings?: SubtitleSettings;
 }
-
-const DEFAULT_OFFSET = 50; // px
 
 class SubtitlesManager {
   private subtitles: Subtitle[] = [];
@@ -28,9 +29,13 @@ class SubtitlesManager {
   private scrollHandler: (() => void) | null = null;
   private fullscreenHandler: (() => void) | null = null;
   private isFullscreen: boolean = false;
+  private settings: SubtitleSettings | null = null;
 
-  init(target: VideoTarget, subtitles: Subtitle[]) {
+  async init(target: VideoTarget, subtitles: Subtitle[]) {
     this.subtitles = subtitles;
+
+    // Load settings from storage
+    await this.loadSettings();
 
     this.video = this.findTargetVideo(target);
 
@@ -44,34 +49,83 @@ class SubtitlesManager {
     return true;
   }
 
+  private async loadSettings() {
+    try {
+      const result = await chrome.storage.local.get("subtitleSettings");
+      if (result.subtitleSettings) {
+        this.settings = result.subtitleSettings;
+      } else {
+        // Default settings if none are saved
+        this.settings = {
+          fontSize: 24,
+          fontColor: "#ffffff",
+          background: false,
+          backgroundColor: "#000000aa",
+          fontFamily: "Arial, sans-serif",
+          offsetFromBottom: 80,
+          textShadow: true,
+          shadowColor: "#000000",
+          padding: 8,
+        };
+      }
+    } catch (error) {
+      console.error("Error loading subtitle settings:", error);
+    }
+  }
+
+  updateSettings(settings: SubtitleSettings) {
+    this.settings = settings;
+    if (this.subtitleElement) {
+      this.applyStyles();
+      this.updateSubtitlePosition();
+    }
+  }
+
   private addSubtitleElement() {
-    if (!this.video) return false;
+    if (!this.video || !this.settings) return false;
 
     // Remove existing subtitle element if it exists
     this.removeSubtitleElement();
 
     this.subtitleElement = document.createElement("div");
-    this.subtitleElement.style.cssText = `
-      position: absolute;
-      color: white;
-      font-size: 24px;
-      text-align: center;
-      z-index: 2147483647;
-      white-space: pre-line;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-      font-family: Arial, sans-serif;
-      font-weight: bold;
-      line-height: 1.2;
-      word-wrap: break-word;
-    `;
     this.subtitleElement.id = "subtitle-element";
 
+    this.applyStyles();
     this.updateSubtitlePosition();
     this.updateSubtitleContent();
 
     // Append to appropriate container based on fullscreen state
     this.appendSubtitleElement();
     return true;
+  }
+
+  private applyStyles() {
+    if (!this.subtitleElement || !this.settings) return;
+
+    const textShadow = this.settings.textShadow
+      ? `2px 2px 4px ${this.settings.shadowColor}`
+      : "none";
+
+    const backgroundColor = this.settings.background
+      ? this.settings.backgroundColor
+      : "transparent";
+
+    this.subtitleElement.style.cssText = `
+      position: absolute;
+      color: ${this.settings.fontColor};
+      font-size: ${this.settings.fontSize}px;
+      font-family: ${this.settings.fontFamily};
+      padding: ${this.settings.padding}px;
+      background-color: ${backgroundColor};
+      text-shadow: ${textShadow};
+      text-align: center;
+      z-index: 2147483647;
+      white-space: pre-line;
+      font-weight: bold;
+      line-height: 1.4;
+      word-wrap: break-word;
+      max-width: 90%;
+    `;
   }
 
   private appendSubtitleElement() {
@@ -160,12 +214,13 @@ class SubtitlesManager {
   }
 
   private updateSubtitlePosition() {
-    if (!this.subtitleElement || !this.video) return false;
+    if (!this.subtitleElement || !this.video || !this.settings) return false;
 
     try {
       const videoRect = this.video.getBoundingClientRect();
 
-      const subtitleTop = videoRect.bottom - DEFAULT_OFFSET + window.scrollY;
+      const subtitleTop =
+        videoRect.bottom - this.settings.offsetFromBottom + window.scrollY;
       const subtitleLeft = videoRect.left + videoRect.width / 2;
 
       this.subtitleElement.style.top = `${subtitleTop}px`;
@@ -224,16 +279,28 @@ chrome.runtime.onMessage.addListener(
       switch (message.type) {
         case "ADD_SUBTITLES":
           if (message.target && message.subtitles) {
-            const success = subtitleManager.init(
-              message.target,
-              message.subtitles
-            );
-            sendResponse({ success });
+            subtitleManager
+              .init(message.target, message.subtitles)
+              .then((success) => {
+                sendResponse({ success });
+              })
+              .catch((error) => {
+                sendResponse({ success: false, error: error.message });
+              });
           } else {
             sendResponse({
               success: false,
               error: "Missing target or subtitles data",
             });
+          }
+          break;
+
+        case "UPDATE_SUBTITLE_SETTINGS":
+          if (message.settings) {
+            subtitleManager.updateSettings(message.settings);
+            sendResponse({ success: true });
+          } else {
+            sendResponse({ success: false, error: "Missing settings data" });
           }
           break;
 
@@ -244,7 +311,5 @@ chrome.runtime.onMessage.addListener(
       console.error("Error handling subtitle message:", error);
       sendResponse({ success: false, error: (error as Error).message });
     }
-
-    return true;
   }
 );
