@@ -1,20 +1,21 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { SubtitlesProvider } from "./context/subtitles";
-import { SelectVideo } from "./components/SelectVideo";
 import { StoredFilesProvider } from "./context/storedFiles";
-import { SubtitlesLoader } from "./components/SubtitlesLoader";
-import { FileList } from "./components/FileList";
+import { App } from "./components/App";
+import { SettingsProvider } from "./context/settings";
 import "./main.css";
 
-createRoot(document.getElementById("root")!).render(
+const Main = () => (
   <StrictMode>
     <StoredFilesProvider>
       <SubtitlesProvider>
-        <SelectVideo />
-        <SubtitlesLoader />
-        <FileList />
+        <SettingsProvider>
+          <App />
+        </SettingsProvider>
       </SubtitlesProvider>
     </StoredFilesProvider>
   </StrictMode>
 );
+
+createRoot(document.getElementById("root")!).render(<Main />);

@@ -47,7 +47,7 @@ export const FileList = () => {
   if (storedFiles.length === 0) return null;
 
   return (
-    <div className={styles.container}>
+    <div>
       <Title>Uploaded Files</Title>
       <ErrorMessage error={error} setError={setError} />
       <div className={styles.filesList}>

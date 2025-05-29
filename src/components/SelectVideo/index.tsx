@@ -134,9 +134,18 @@ export const SelectVideo = () => {
   }, []);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.videosSection}>
-        <Title subtitle="Select a video element from the page to show subtitles">
+    <div>
+      <div
+        className={styles.videosSection}
+        style={videoElements.length ? {} : { marginBottom: -16 }}
+      >
+        <Title
+          subtitle={
+            videoElements.length
+              ? "Select a video from the page to show subtitles"
+              : "Could not find any video on the page."
+          }
+        >
           <div className={styles.header}>
             Videos on the page ({videoElements.length})
             <IconButton
