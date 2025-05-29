@@ -8,6 +8,9 @@
   --error-border-color: #fecaca;
   --error-text-color: #b91c1c;
   --text-light: #9ca3af;
+  --blue: #3b82f6;
+  --blue-hover: #60a5fa;
+  --light-gray: #4b5563;
 }
 
 * {
@@ -20,4 +23,12 @@
 body {
   background-color: var(--background-color);
   color: var(--secondary-color);
+}
+
+.MuiInputAdornment-root {
+  margin: 0 !important;
+}
+
+.MuiInputBase-root {
+  padding-left: 0 !important;
 }

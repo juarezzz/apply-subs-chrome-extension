@@ -1,6 +1,8 @@
 import React from "react";
 import { useSettings } from "../../context/settings";
+import { MuiColorInput as ColorInput } from "mui-color-input";
 import styles from "./styles.module.css";
+import { Title } from "../Title";
 
 export const Settings: React.FC = () => {
   const { settings, updateSettings, isLoading } = useSettings();
@@ -34,10 +36,8 @@ export const Settings: React.FC = () => {
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>Settings</h2>
-      </div>
+    <div>
+      <Title>Settings</Title>
 
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Text Appearance</h3>
@@ -47,8 +47,8 @@ export const Settings: React.FC = () => {
           <div className={styles.inputGroup}>
             <input
               type="range"
-              min="12"
-              max="48"
+              min="10"
+              max="100"
               value={settings.fontSize}
               onChange={(e) => handleNumberChange("fontSize", e.target.value)}
               className={styles.slider}
@@ -60,10 +60,10 @@ export const Settings: React.FC = () => {
         <div className={styles.settingRow}>
           <label className={styles.label}>Font Color</label>
           <div className={styles.colorInputWrapper}>
-            <input
-              type="color"
+            <ColorInput
               value={settings.fontColor}
-              onChange={(e) => handleColorChange("fontColor", e.target.value)}
+              onChange={(value) => handleColorChange("fontColor", value)}
+              format="hex8"
               className={styles.colorInput}
             />
             <span className={styles.colorValue}>{settings.fontColor}</span>
@@ -95,51 +95,43 @@ export const Settings: React.FC = () => {
           <label className={styles.label}>Background Color</label>
           <div className={styles.colorInputWrapper}>
             <input
-              type="color"
-              value={settings.backgroundColor.slice(0, 7)}
-              onChange={(e) => {
-                const alpha = settings.backgroundColor.slice(7) || "aa";
-                handleColorChange("backgroundColor", e.target.value + alpha);
+              type="checkbox"
+              checked={settings.background}
+              onChange={(e) => updateSettings({ background: e.target.checked })}
+              className={styles.checkbox}
+            />
+
+            <ColorInput
+              value={settings.backgroundColor}
+              format="hex8"
+              onChange={(value) => {
+                handleColorChange("backgroundColor", value);
               }}
               className={styles.colorInput}
             />
-            <input
-              type="range"
-              min="0"
-              max="255"
-              value={parseInt(settings.backgroundColor.slice(7) || "aa", 16)}
-              onChange={(e) => {
-                const color = settings.backgroundColor.slice(0, 7);
-                const alpha = parseInt(e.target.value)
-                  .toString(16)
-                  .padStart(2, "0");
-                handleColorChange("backgroundColor", color + alpha);
-              }}
-              className={styles.alphaSlider}
-              title="Background opacity"
-            />
+            <span className={styles.colorValue}>
+              {settings.backgroundColor}
+            </span>
           </div>
         </div>
 
         <div className={styles.settingRow}>
           <label className={styles.label}>Text Shadow</label>
-          <div className={styles.checkboxWrapper}>
+          <div className={styles.colorInputWrapper}>
             <input
               type="checkbox"
               checked={settings.textShadow}
               onChange={(e) => updateSettings({ textShadow: e.target.checked })}
               className={styles.checkbox}
             />
-            {settings.textShadow && (
-              <input
-                type="color"
-                value={settings.shadowColor}
-                onChange={(e) =>
-                  handleColorChange("shadowColor", e.target.value)
-                }
-                className={styles.colorInput}
-              />
-            )}
+
+            <ColorInput
+              value={settings.shadowColor}
+              format="hex8"
+              onChange={(value) => handleColorChange("shadowColor", value)}
+              className={styles.colorInput}
+            />
+            <span className={styles.colorValue}>{settings.shadowColor}</span>
           </div>
         </div>
       </div>
@@ -153,7 +145,7 @@ export const Settings: React.FC = () => {
             <input
               type="range"
               min="0"
-              max="20"
+              max="30"
               value={settings.padding}
               onChange={(e) => handleNumberChange("padding", e.target.value)}
               className={styles.slider}
@@ -167,7 +159,7 @@ export const Settings: React.FC = () => {
           <div className={styles.inputGroup}>
             <input
               type="range"
-              min="20"
+              min="0"
               max="200"
               value={settings.offsetFromBottom}
               onChange={(e) =>
@@ -189,9 +181,10 @@ export const Settings: React.FC = () => {
               style={{
                 fontSize: `${settings.fontSize}px`,
                 color: settings.fontColor,
-                backgroundColor: settings.backgroundColor,
+                backgroundColor: settings.background
+                  ? settings.backgroundColor
+                  : "transparent",
                 fontFamily: settings.fontFamily,
-                bottom: `${settings.offsetFromBottom}px`,
                 textShadow: settings.textShadow
                   ? `2px 2px 4px ${settings.shadowColor}`
                   : "none",

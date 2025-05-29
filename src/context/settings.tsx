@@ -10,6 +10,7 @@ import {
 export interface SubtitleSettings {
   fontSize: number; // in pixels
   fontColor: string; // hex color
+  background: boolean;
   backgroundColor: string; // hex color with alpha
   fontFamily: string;
   offsetFromBottom: number; // in pixels
@@ -21,6 +22,7 @@ export interface SubtitleSettings {
 const DEFAULT_SETTINGS: SubtitleSettings = {
   fontSize: 24,
   fontColor: "#ffffff",
+  background: false,
   backgroundColor: "#000000aa",
   fontFamily: "Arial, sans-serif",
   offsetFromBottom: 80,
