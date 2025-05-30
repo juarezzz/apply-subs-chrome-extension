@@ -8,7 +8,7 @@ import { Settings } from "../Settings";
 import styles from "./styles.module.css";
 
 export const App = () => {
-  const [page, setPage] = useState<"app" | "settings">("settings");
+  const [page, setPage] = useState<"app" | "settings">("app");
 
   const handleTogglePage = () => {
     setPage((prevPage) => (prevPage === "app" ? "settings" : "app"));

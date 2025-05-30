@@ -25,6 +25,8 @@ class SubtitlesManager {
   private subtitles: Subtitle[] = [];
   private video: HTMLVideoElement | null = null;
   private subtitleElement: HTMLDivElement | null = null;
+  private shadowHost: HTMLDivElement | null = null;
+  private shadowRoot: ShadowRoot | null = null;
   private resizeObserver: ResizeObserver | null = null;
   private scrollHandler: (() => void) | null = null;
   private fullscreenHandler: (() => void) | null = null;
@@ -87,6 +89,21 @@ class SubtitlesManager {
     // Remove existing subtitle element if it exists
     this.removeSubtitleElement();
 
+    // Create shadow host element
+    this.shadowHost = document.createElement("div");
+    this.shadowHost.id = "subtitle-shadow-host";
+
+    // Style the shadow host - it will be positioned where subtitles should appear
+    this.shadowHost.style.cssText = `
+      position: absolute;
+      z-index: 2147483647;
+      transform: translateX(-50%) translateY(-100%);
+    `;
+
+    // Create shadow root with closed mode for better isolation
+    this.shadowRoot = this.shadowHost.attachShadow({ mode: "closed" });
+
+    // Create the actual subtitle element
     this.subtitleElement = document.createElement("div");
     this.subtitleElement.id = "subtitle-element";
 
@@ -94,7 +111,10 @@ class SubtitlesManager {
     this.updateSubtitlePosition();
     this.updateSubtitleContent();
 
-    // Append to appropriate container based on fullscreen state
+    // Append subtitle element to shadow root
+    this.shadowRoot.appendChild(this.subtitleElement);
+
+    // Append shadow host to appropriate container based on fullscreen state
     this.appendSubtitleElement();
     return true;
   }
@@ -111,7 +131,6 @@ class SubtitlesManager {
       : "transparent";
 
     this.subtitleElement.style.cssText = `
-      position: absolute;
       color: ${this.settings.fontColor};
       font-size: ${this.settings.fontSize}px;
       font-family: ${this.settings.fontFamily};
@@ -119,17 +138,16 @@ class SubtitlesManager {
       background-color: ${backgroundColor};
       text-shadow: ${textShadow};
       text-align: center;
-      z-index: 2147483647;
       white-space: pre-line;
       font-weight: bold;
       line-height: 1.4;
       word-wrap: break-word;
-      max-width: 90%;
+      max-width: 90vw;
     `;
   }
 
   private appendSubtitleElement() {
-    if (!this.subtitleElement) return;
+    if (!this.shadowHost) return;
 
     // Check if we're in fullscreen mode
     this.isFullscreen = !!document.fullscreenElement;
@@ -137,19 +155,22 @@ class SubtitlesManager {
     if (this.isFullscreen) {
       // In fullscreen, append to the fullscreen element or its container
       const fullscreenElement = document.fullscreenElement;
-      if (fullscreenElement)
-        fullscreenElement.appendChild(this.subtitleElement);
-      else document.body.appendChild(this.subtitleElement);
+      if (fullscreenElement) fullscreenElement.appendChild(this.shadowHost);
+      else document.body.appendChild(this.shadowHost);
     }
     // Normal mode - append to document body
-    else document.body.appendChild(this.subtitleElement);
+    else document.body.appendChild(this.shadowHost);
   }
 
   private removeSubtitleElement() {
-    if (this.subtitleElement) {
-      this.subtitleElement.remove();
-      this.subtitleElement = null;
+    if (this.shadowHost) {
+      this.shadowHost.remove();
+      this.shadowHost = null;
     }
+
+    if (this.shadowRoot) this.shadowRoot = null;
+
+    if (this.subtitleElement) this.subtitleElement = null;
   }
 
   private attachEventListeners() {
@@ -198,11 +219,11 @@ class SubtitlesManager {
 
     this.isFullscreen = !!document.fullscreenElement;
 
-    // If fullscreen state changed, re-append the subtitle element
+    // If fullscreen state changed, re-append the shadow host element
     if (wasFullscreen !== this.isFullscreen) {
-      if (this.subtitleElement) {
+      if (this.shadowHost) {
         // Remove from current parent
-        this.subtitleElement.remove();
+        this.shadowHost.remove();
 
         // Re-append to appropriate container
         this.appendSubtitleElement();
@@ -214,7 +235,7 @@ class SubtitlesManager {
   }
 
   private updateSubtitlePosition() {
-    if (!this.subtitleElement || !this.video || !this.settings) return false;
+    if (!this.shadowHost || !this.video || !this.settings) return false;
 
     try {
       const videoRect = this.video.getBoundingClientRect();
@@ -223,10 +244,8 @@ class SubtitlesManager {
         videoRect.bottom - this.settings.offsetFromBottom + window.scrollY;
       const subtitleLeft = videoRect.left + videoRect.width / 2;
 
-      this.subtitleElement.style.top = `${subtitleTop}px`;
-      this.subtitleElement.style.left = `${subtitleLeft}px`;
-      this.subtitleElement.style.transform =
-        "translateX(-50%) translateY(-100%)";
+      this.shadowHost.style.top = `${subtitleTop}px`;
+      this.shadowHost.style.left = `${subtitleLeft}px`;
 
       return true;
     } catch (error) {
