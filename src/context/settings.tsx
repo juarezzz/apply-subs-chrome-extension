@@ -19,6 +19,7 @@ export interface SubtitleSettings {
   shadowColor: string;
   verticalPadding: number; // in pixels
   horizontalPadding: number; // in pixels
+  pointerEvents: boolean; // allows text selection
 }
 
 export const DEFAULT_SETTINGS: SubtitleSettings = {
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: SubtitleSettings = {
   shadowColor: "#000000",
   verticalPadding: 8,
   horizontalPadding: 8,
+  pointerEvents: true,
 };
 
 interface SettingsContextType {

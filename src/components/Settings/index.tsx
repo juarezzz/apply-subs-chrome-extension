@@ -33,7 +33,6 @@ export const Settings: React.FC = () => {
   return (
     <div>
       <Title>Settings</Title>
-
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Synchronization</h3>
         <div className={styles.settingRow}>
@@ -56,7 +55,7 @@ export const Settings: React.FC = () => {
       </div>
 
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Styles & Position</h3>
+        <h3 className={styles.sectionTitle}>Subtitle Appearance</h3>
 
         <div className={styles.settingRow}>
           <label className={styles.label}>Font Size</label>
@@ -197,6 +196,20 @@ export const Settings: React.FC = () => {
             <span className={styles.value}>{settings.offsetFromBottom}px</span>
           </div>
         </div>
+
+        <div className={styles.settingRow}>
+          <label className={styles.label}>Selectable Text</label>
+          <div className={styles.inputGroup}>
+            <input
+              type="checkbox"
+              checked={settings.pointerEvents}
+              onChange={(e) =>
+                updateSettings({ pointerEvents: e.target.checked })
+              }
+              className={styles.checkbox}
+            />
+          </div>
+        </div>
       </div>
 
       <div className={styles.preview}>
@@ -216,6 +229,7 @@ export const Settings: React.FC = () => {
                   ? `2px 2px 4px ${settings.shadowColor}`
                   : "none",
                 padding: `${settings.verticalPadding}px ${settings.horizontalPadding}px`,
+                pointerEvents: settings.pointerEvents ? "all" : "none",
               }}
             >
               Sample subtitle text

@@ -21,12 +21,12 @@ type StoredFilesList = Omit<StoredFile, "content">[];
 interface StoredFilesContextType {
   storedFiles: StoredFilesList;
   filesLoading: boolean;
-  saveFile: (params: saveFileParams) => Promise<StoredFile>;
+  saveFile: (params: SaveFileParams) => Promise<StoredFile>;
   removeFile: (id: string) => Promise<void>;
   getFile: (id: string) => Promise<StoredFile | undefined>;
 }
 
-interface saveFileParams {
+interface SaveFileParams {
   name: string;
   content: string;
   size: number;
@@ -62,7 +62,7 @@ export const StoredFilesProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const saveFile = useCallback(
-    async ({ content, name, size }: saveFileParams) => {
+    async ({ content, name, size }: SaveFileParams) => {
       const id = crypto.randomUUID();
 
       const newFile: StoredFile = {

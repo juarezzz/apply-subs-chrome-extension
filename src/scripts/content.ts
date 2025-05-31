@@ -73,6 +73,7 @@ class SubtitlesManager {
           shadowColor: "#000000",
           verticalPadding: 8,
           horizontalPadding: 8,
+          pointerEvents: true,
         };
       }
     } catch (error) {
@@ -126,7 +127,11 @@ class SubtitlesManager {
   }
 
   private applyStyles() {
-    if (!this.subtitleElement || !this.settings) return;
+    if (!this.shadowHost || !this.subtitleElement || !this.settings) return;
+
+    this.shadowHost.style.pointerEvents = this.settings.pointerEvents
+      ? "all"
+      : "none";
 
     const textShadow = this.settings.textShadow
       ? `2px 2px 4px ${this.settings.shadowColor}`
@@ -148,7 +153,6 @@ class SubtitlesManager {
       font-weight: bold;
       line-height: 1.4;
       word-wrap: break-word;
-      max-width: 90vw;
     `;
   }
 

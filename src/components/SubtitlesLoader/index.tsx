@@ -29,7 +29,7 @@ export const SubtitlesLoader = () => {
       try {
         const content = e.target?.result;
         if (typeof content !== "string") {
-          throw new Error("Failed to read file content as string");
+          throw new Error("Failed to read file content");
         }
 
         setError("");
@@ -47,11 +47,7 @@ export const SubtitlesLoader = () => {
           content: subtitles,
         });
       } catch (err) {
-        setError(
-          `Error parsing SRT file: ${
-            err instanceof Error ? err.message : "Unknown error"
-          }`
-        );
+        setError(err instanceof Error ? err.message : "Error processing file");
       }
     };
 
