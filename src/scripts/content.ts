@@ -1,6 +1,7 @@
 import { Subtitle } from "../context/subtitles";
 import { SubtitleSettings } from "../context/settings";
 import { isValidTimeOffset } from "../utils/isValidTimeOffset";
+import { binarySearch } from "../utils/binarySearch";
 
 interface VideoTarget {
   frameId: number;
@@ -33,6 +34,7 @@ class SubtitlesManager {
   private fullscreenHandler: (() => void) | null = null;
   private isFullscreen: boolean = false;
   private settings: SubtitleSettings | null = null;
+  private isHidden = false;
 
   async init(target: VideoTarget, subtitles: Subtitle[]) {
     this.subtitles = subtitles;
@@ -270,9 +272,11 @@ class SubtitlesManager {
 
       const adjustedTime = currentTime + timeOffset;
 
-      const currentSubtitle = this.subtitles.find(
-        (sub) => sub.start <= adjustedTime && sub.end >= adjustedTime
-      );
+      const currentSubtitle = binarySearch(this.subtitles, (sub) => {
+        if (sub.start > adjustedTime) return 1;
+        if (sub.end < adjustedTime) return -1;
+        return 0;
+      });
 
       if (!currentSubtitle) {
         this.subtitleElement.textContent = null;
@@ -280,13 +284,24 @@ class SubtitlesManager {
         return false;
       }
 
-      this.subtitleElement.style.display = "block";
+      if (!this.isHidden) this.subtitleElement.style.display = "block";
+
       this.subtitleElement.textContent = currentSubtitle.text;
       return true;
     } catch (error) {
       console.error("Error updating subtitle content:", error);
       return false;
     }
+  }
+
+  toggleSubtitles() {
+    if (!this.subtitleElement) return;
+
+    this.isHidden = !this.isHidden;
+
+    this.subtitleElement.style.display = this.isHidden ? "none" : "block";
+
+    this.updateSubtitleContent();
   }
 
   private findTargetVideo(target: VideoTarget): HTMLVideoElement | null {
@@ -337,6 +352,11 @@ chrome.runtime.onMessage.addListener(
           } else {
             sendResponse({ success: false, error: "Missing settings data" });
           }
+          break;
+
+        case "TOGGLE_SUBTITLES":
+          subtitleManager.toggleSubtitles();
+          sendResponse({ success: true });
           break;
 
         default:
