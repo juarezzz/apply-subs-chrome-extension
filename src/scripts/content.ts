@@ -59,12 +59,12 @@ class SubtitlesManager {
       } else {
         // Default settings if none are saved
         this.settings = {
-          fontSize: 24,
+          fontSize: 20,
           fontColor: "#ffffff",
           background: false,
-          backgroundColor: "#000000aa",
+          backgroundColor: "#000000",
           fontFamily: "Arial, sans-serif",
-          offsetFromBottom: 80,
+          offsetFromBottom: 60,
           textShadow: true,
           shadowColor: "#000000",
           padding: 8,
