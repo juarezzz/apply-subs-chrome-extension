@@ -1,5 +1,6 @@
 import { Subtitle } from "../context/subtitles";
 import { SubtitleSettings } from "../context/settings";
+import { isValidTimeOffset } from "../utils/isValidTimeOffset";
 
 interface VideoTarget {
   frameId: number;
@@ -59,6 +60,7 @@ class SubtitlesManager {
       } else {
         // Default settings if none are saved
         this.settings = {
+          syncOffset: 0,
           fontSize: 20,
           fontColor: "#ffffff",
           background: false,
@@ -80,6 +82,7 @@ class SubtitlesManager {
     if (this.subtitleElement) {
       this.applyStyles();
       this.updateSubtitlePosition();
+      this.updateSubtitleContent();
     }
   }
 
@@ -101,7 +104,7 @@ class SubtitlesManager {
     `;
 
     // Create shadow root with closed mode for better isolation
-    this.shadowRoot = this.shadowHost.attachShadow({ mode: "closed" });
+    this.shadowRoot = this.shadowHost.attachShadow({ mode: "open" });
 
     // Create the actual subtitle element
     this.subtitleElement = document.createElement("div");
@@ -260,8 +263,14 @@ class SubtitlesManager {
     try {
       const currentTime = this.video.currentTime;
 
+      const timeOffset = isValidTimeOffset(this.settings?.syncOffset)
+        ? this.settings.syncOffset
+        : 0;
+
+      const adjustedTime = currentTime + timeOffset;
+
       const currentSubtitle = this.subtitles.find(
-        (sub) => sub.start <= currentTime && sub.end >= currentTime
+        (sub) => sub.start <= adjustedTime && sub.end >= adjustedTime
       );
 
       this.subtitleElement.textContent = currentSubtitle?.text || null;

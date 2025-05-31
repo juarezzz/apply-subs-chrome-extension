@@ -8,6 +8,7 @@ import {
 } from "react";
 
 export interface SubtitleSettings {
+  syncOffset: number; // in seconds
   fontSize: number; // in pixels
   fontColor: string; // hex color
   background: boolean;
@@ -20,6 +21,7 @@ export interface SubtitleSettings {
 }
 
 export const DEFAULT_SETTINGS: SubtitleSettings = {
+  syncOffset: 0,
   fontSize: 20,
   fontColor: "#ffffff",
   background: false,

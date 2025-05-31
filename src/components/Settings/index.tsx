@@ -1,5 +1,5 @@
 import React from "react";
-import { useSettings } from "../../context/settings";
+import { useSettings, SubtitleSettings } from "../../context/settings";
 import { MuiColorInput as ColorInput } from "mui-color-input";
 import styles from "./styles.module.css";
 import { Title } from "../Title";
@@ -15,16 +15,11 @@ export const Settings: React.FC = () => {
   };
 
   const handleNumberChange = (
-    setting:
-      | "fontSize"
-      | "offsetFromBottom"
-      | "padding"
-      | "borderRadius"
-      | "opacity",
+    setting: keyof SubtitleSettings,
     value: string
   ) => {
     const numValue =
-      setting === "opacity" ? parseFloat(value) : parseInt(value, 10);
+      setting === "syncOffset" ? parseFloat(value) : parseInt(value, 10);
 
     if (!isNaN(numValue)) {
       updateSettings({ [setting]: numValue });
@@ -40,7 +35,28 @@ export const Settings: React.FC = () => {
       <Title>Settings</Title>
 
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Text Appearance</h3>
+        <h3 className={styles.sectionTitle}>Synchronization</h3>
+        <div className={styles.settingRow}>
+          <label className={styles.label}>Sync Offset</label>
+          <div className={styles.inputGroup}>
+            <input
+              type="range"
+              min="-60"
+              max="60"
+              value={settings.syncOffset}
+              onChange={(e) => handleNumberChange("syncOffset", e.target.value)}
+              className={styles.slider}
+            />
+            <span className={styles.value}>
+              {settings.syncOffset > 0 ? "+" : ""}
+              {settings.syncOffset}s
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>Subtitles</h3>
 
         <div className={styles.settingRow}>
           <label className={styles.label}>Font Size</label>
@@ -86,10 +102,6 @@ export const Settings: React.FC = () => {
             <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
           </select>
         </div>
-      </div>
-
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Background & Effects</h3>
 
         <div className={styles.settingRow}>
           <label className={styles.label}>Background Color</label>
@@ -134,10 +146,6 @@ export const Settings: React.FC = () => {
             <span className={styles.colorValue}>{settings.shadowColor}</span>
           </div>
         </div>
-      </div>
-
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Position & Layout</h3>
 
         <div className={styles.settingRow}>
           <label className={styles.label}>Padding</label>

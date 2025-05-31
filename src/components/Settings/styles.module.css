@@ -102,26 +102,6 @@
   font-family: monospace;
 }
 
-.alphaSlider {
-  width: 80px;
-  height: 4px;
-  background: var(--border-color);
-  outline: none;
-  -webkit-appearance: none;
-  appearance: none;
-  border-radius: 2px;
-  cursor: pointer;
-}
-
-.alphaSlider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 12px;
-  height: 12px;
-  cursor: pointer;
-  border-radius: 50%;
-}
-
 .select {
   padding: 6px 10px;
   background-color: var(--border-color);
