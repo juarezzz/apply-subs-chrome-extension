@@ -69,7 +69,8 @@ class SubtitlesManager {
           offsetFromBottom: 60,
           textShadow: true,
           shadowColor: "#000000",
-          padding: 8,
+          verticalPadding: 8,
+          horizontalPadding: 8,
         };
       }
     } catch (error) {
@@ -137,7 +138,7 @@ class SubtitlesManager {
       color: ${this.settings.fontColor};
       font-size: ${this.settings.fontSize}px;
       font-family: ${this.settings.fontFamily};
-      padding: ${this.settings.padding}px;
+      padding: ${this.settings.verticalPadding}px ${this.settings.horizontalPadding}px;
       background-color: ${backgroundColor};
       text-shadow: ${textShadow};
       text-align: center;
@@ -273,8 +274,14 @@ class SubtitlesManager {
         (sub) => sub.start <= adjustedTime && sub.end >= adjustedTime
       );
 
-      this.subtitleElement.textContent = currentSubtitle?.text || null;
+      if (!currentSubtitle) {
+        this.subtitleElement.textContent = null;
+        this.subtitleElement.style.display = "none";
+        return false;
+      }
 
+      this.subtitleElement.style.display = "block";
+      this.subtitleElement.textContent = currentSubtitle.text;
       return true;
     } catch (error) {
       console.error("Error updating subtitle content:", error);

@@ -17,7 +17,8 @@ export interface SubtitleSettings {
   offsetFromBottom: number; // in pixels
   textShadow: boolean;
   shadowColor: string;
-  padding: number; // in pixels
+  verticalPadding: number; // in pixels
+  horizontalPadding: number; // in pixels
 }
 
 export const DEFAULT_SETTINGS: SubtitleSettings = {
@@ -30,7 +31,8 @@ export const DEFAULT_SETTINGS: SubtitleSettings = {
   offsetFromBottom: 60,
   textShadow: true,
   shadowColor: "#000000",
-  padding: 8,
+  verticalPadding: 8,
+  horizontalPadding: 8,
 };
 
 interface SettingsContextType {

@@ -56,7 +56,7 @@ export const Settings: React.FC = () => {
       </div>
 
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Subtitles</h3>
+        <h3 className={styles.sectionTitle}>Styles & Position</h3>
 
         <div className={styles.settingRow}>
           <label className={styles.label}>Font Size</label>
@@ -148,17 +148,36 @@ export const Settings: React.FC = () => {
         </div>
 
         <div className={styles.settingRow}>
-          <label className={styles.label}>Padding</label>
+          <label className={styles.label}>Horizontal Padding</label>
           <div className={styles.inputGroup}>
             <input
               type="range"
               min="0"
               max="30"
-              value={settings.padding}
-              onChange={(e) => handleNumberChange("padding", e.target.value)}
+              value={settings.horizontalPadding}
+              onChange={(e) =>
+                handleNumberChange("horizontalPadding", e.target.value)
+              }
               className={styles.slider}
             />
-            <span className={styles.value}>{settings.padding}px</span>
+            <span className={styles.value}>{settings.horizontalPadding}px</span>
+          </div>
+        </div>
+
+        <div className={styles.settingRow}>
+          <label className={styles.label}>Vertical Padding</label>
+          <div className={styles.inputGroup}>
+            <input
+              type="range"
+              min="0"
+              max="30"
+              value={settings.verticalPadding}
+              onChange={(e) =>
+                handleNumberChange("verticalPadding", e.target.value)
+              }
+              className={styles.slider}
+            />
+            <span className={styles.value}>{settings.verticalPadding}px</span>
           </div>
         </div>
 
@@ -196,7 +215,7 @@ export const Settings: React.FC = () => {
                 textShadow: settings.textShadow
                   ? `2px 2px 4px ${settings.shadowColor}`
                   : "none",
-                padding: `${settings.padding}px`,
+                padding: `${settings.verticalPadding}px ${settings.horizontalPadding}px`,
               }}
             >
               Sample subtitle text
