@@ -137,7 +137,8 @@ export const SelectVideo = () => {
     <div>
       <div
         className={styles.videosSection}
-        style={videoElements.length ? {} : { marginBottom: -16 }}
+        // Remove margin from subtitle if it is displaying with no video
+        style={videoElements.length ? {} : { marginBottom: -12 }}
       >
         <Title
           subtitle={

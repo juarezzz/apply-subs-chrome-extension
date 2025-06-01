@@ -38,6 +38,8 @@ export const FileInput: React.FC<FileInputProps> = ({ onFilesSelected }) => {
   const validateFiles = (
     fileList: File[]
   ): { valid: File[]; error?: string } => {
+    console.log("Validating files:", fileList);
+
     const oversizedFiles = fileList.filter((file) => file.size > MAX_FILE_SIZE);
     if (oversizedFiles.length > 0) {
       const maxSizeMB = (MAX_FILE_SIZE / (1024 * 1024)).toFixed(2);
@@ -67,11 +69,6 @@ export const FileInput: React.FC<FileInputProps> = ({ onFilesSelected }) => {
     setError("");
 
     const droppedFiles = Array.from(e.dataTransfer.files);
-
-    if (droppedFiles.length > 1) {
-      setError("Please drop only one file at a time");
-      return;
-    }
 
     const { valid, error } = validateFiles(droppedFiles);
 
@@ -129,6 +126,7 @@ export const FileInput: React.FC<FileInputProps> = ({ onFilesSelected }) => {
           accept={".srt"}
           onChange={handleFileSelect}
           className={styles.hiddenInput}
+          multiple
         />
 
         <div className={styles.content}>

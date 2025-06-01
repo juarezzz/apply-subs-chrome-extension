@@ -11,51 +11,61 @@ import styles from "./styles.module.css";
 
 export const SubtitlesLoader = () => {
   const { selectedFile, setSelectedFile } = useSubtitles();
-  const { saveFile } = useStoredFiles();
+  const { saveFiles } = useStoredFiles();
 
   const [error, setError] = useState<string>("");
 
-  const handleFilesSelected = (files: File[]) => {
-    const file = files[0];
-
-    if (!file) {
+  const handleFilesSelected = async (files: File[]) => {
+    if (!files || files.length === 0) {
       setError("No file selected");
       return;
     }
 
-    const reader = new FileReader();
+    try {
+      const newFiles = await Promise.all(
+        files.map(async (file) => {
+          const content = await readFileContent(file);
 
-    reader.onload = async (e: ProgressEvent<FileReader>) => {
-      try {
+          return {
+            name: file.name,
+            content,
+            size: file.size,
+          };
+        })
+      );
+
+      const savedFiles = await saveFiles(newFiles);
+
+      const firstFile = savedFiles[0];
+
+      setSelectedFile({
+        ...firstFile,
+        content: parseSRT(firstFile.content),
+      });
+
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error processing file");
+    }
+  };
+
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = (e: ProgressEvent<FileReader>) => {
         const content = e.target?.result;
         if (typeof content !== "string") {
-          throw new Error("Failed to read file content");
+          reject(new Error("Failed to read file content"));
+          return;
         }
+        resolve(content);
+      };
 
-        setError("");
+      reader.onerror = () => reject(new Error("Error reading file"));
 
-        const newFile = await saveFile({
-          name: file.name,
-          size: file.size,
-          content,
-        });
-
-        const subtitles = parseSRT(content);
-
-        setSelectedFile({
-          ...newFile,
-          content: subtitles,
-        });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Error processing file");
-      }
-    };
-
-    reader.onerror = () => {
-      setError("Error reading file");
-    };
-
-    reader.readAsText(file);
+      reader.readAsText(file);
+    });
   };
 
   return (

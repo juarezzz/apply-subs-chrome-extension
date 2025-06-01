@@ -18,18 +18,18 @@ export interface StoredFile {
 
 type StoredFilesList = Omit<StoredFile, "content">[];
 
-interface StoredFilesContextType {
-  storedFiles: StoredFilesList;
-  filesLoading: boolean;
-  saveFile: (params: SaveFileParams) => Promise<StoredFile>;
-  removeFile: (id: string) => Promise<void>;
-  getFile: (id: string) => Promise<StoredFile | undefined>;
-}
-
-interface SaveFileParams {
+type SaveFilesParams = {
   name: string;
   content: string;
   size: number;
+}[];
+
+interface StoredFilesContextType {
+  storedFiles: StoredFilesList;
+  filesLoading: boolean;
+  saveFiles: (params: SaveFilesParams) => Promise<StoredFile[]>;
+  removeFile: (id: string) => Promise<void>;
+  getFile: (id: string) => Promise<StoredFile | undefined>;
 }
 
 const StoredFilesContext = createContext<StoredFilesContextType | undefined>(
@@ -61,31 +61,36 @@ export const StoredFilesProvider = ({ children }: { children: ReactNode }) => {
       .finally(() => setFilesLoading(false));
   }, []);
 
-  const saveFile = useCallback(
-    async ({ content, name, size }: SaveFileParams) => {
-      const id = crypto.randomUUID();
+  const saveFiles = useCallback(
+    async (files: SaveFilesParams) => {
+      const uploadedAt = Date.now();
 
-      const newFile: StoredFile = {
-        id,
+      const newFiles = files.map<StoredFile>(({ name, content, size }) => ({
+        id: crypto.randomUUID(),
         name,
         content,
         size,
-        uploadedAt: Date.now(),
-      };
+        uploadedAt,
+      }));
 
       const newFilesList = [
         ...storedFiles,
-        { ...newFile, content: undefined }, // Exclude content from the list
+        ...newFiles.map((file) => ({ ...file, content: undefined })),
       ];
 
+      const filesMap = newFiles.reduce((acc, file) => {
+        acc[file.id] = file;
+        return acc;
+      }, {} as Record<string, StoredFile>);
+
       await chrome.storage.local.set({
-        [id]: newFile,
+        ...filesMap,
         filesList: newFilesList,
       });
 
       setStoredFiles(newFilesList);
 
-      return newFile;
+      return newFiles;
     },
     [storedFiles]
   );
@@ -110,12 +115,12 @@ export const StoredFilesProvider = ({ children }: { children: ReactNode }) => {
   const value = useMemo(
     () => ({
       storedFiles,
-      saveFile,
+      saveFiles,
       filesLoading,
       removeFile,
       getFile,
     }),
-    [storedFiles, saveFile, filesLoading, removeFile, getFile]
+    [storedFiles, saveFiles, filesLoading, removeFile, getFile]
   );
 
   return (

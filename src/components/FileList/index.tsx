@@ -48,7 +48,7 @@ export const FileList = () => {
 
   return (
     <div>
-      <Title subtitle="Files you have uploaded are stored on your browser local storage for easy access. You can remove them at any time.">
+      <Title subtitle="Files you have uploaded are stored on your browser local storage for easy access.">
         Uploaded Files
       </Title>
       <ErrorMessage error={error} setError={setError} />
