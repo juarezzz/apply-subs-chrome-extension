@@ -23,13 +23,13 @@
       "suggested_key": {
         "default": "Alt+Shift+Q"
       },
-      "description": "Toggle side panel"
+      "description": "Open/Close side panel"
     },
     "toggle-subtitles": {
       "suggested_key": {
         "default": "Alt+Shift+C"
       },
-      "description": "Show/hide subtitles"
+      "description": "Show/Hide subtitles"
     }
   }
 }

@@ -60,7 +60,7 @@ export const SubtitlesLoader = () => {
 
   return (
     <div>
-      <Title subtitle="Select one of your uploaded files or upload a new one">
+      <Title subtitle="Select one of your uploaded files or upload a new one.">
         Subtitles
       </Title>
       {selectedFile && (

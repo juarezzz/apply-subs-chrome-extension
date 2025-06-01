@@ -142,8 +142,8 @@ export const SelectVideo = () => {
         <Title
           subtitle={
             videoElements.length
-              ? "Select a video from the page to show subtitles"
-              : "Could not find any video on the page."
+              ? "Select a video from the page to show subtitles. Hover over an option to highlight the video."
+              : "Could not find any video on the page. If the page has changed, try scanning again."
           }
         >
           <div className={styles.header}>

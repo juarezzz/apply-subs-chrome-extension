@@ -1,0 +1,17 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.description {
+  color: var(--secondary-color);
+  font-size: 14px;
+  line-height: 1.5;
+
+  a {
+    color: var(--blue);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}

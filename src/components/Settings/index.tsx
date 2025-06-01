@@ -212,7 +212,7 @@ export const Settings: React.FC = () => {
         </div>
       </div>
 
-      <div className={styles.preview}>
+      <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Preview</h3>
         <div className={styles.previewContainer}>
           <div className={styles.videoPlaceholder}>

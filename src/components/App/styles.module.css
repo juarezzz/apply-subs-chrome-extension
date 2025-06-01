@@ -1,8 +1,5 @@
 .container {
   padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }
 
 .pageButton {
@@ -13,8 +10,8 @@
   transition: opacity 0.5s ease-out;
 
   svg {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
   }
 }
 
