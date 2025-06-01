@@ -309,6 +309,8 @@ class SubtitlesManager {
     };
 
     document.addEventListener("fullscreenchange", this.fullscreenHandler);
+    document.addEventListener("webkitfullscreenchange", this.fullscreenHandler);
+    document.addEventListener("mozfullscreenchange", this.fullscreenHandler);
 
     // Add observer to detect if video is removed from DOM
     this.addVideoRemovalObserver();
@@ -342,6 +344,15 @@ class SubtitlesManager {
 
     if (this.fullscreenHandler) {
       document.removeEventListener("fullscreenchange", this.fullscreenHandler);
+      document.removeEventListener(
+        "webkitfullscreenchange",
+        this.fullscreenHandler
+      );
+      document.removeEventListener(
+        "mozfullscreenchange",
+        this.fullscreenHandler
+      );
+
       this.fullscreenHandler = null;
     }
 
