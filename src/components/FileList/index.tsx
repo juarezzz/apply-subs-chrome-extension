@@ -14,17 +14,14 @@ const formatFileSize = (bytes: number) => {
   return (bytes / 1048576).toFixed(2) + " MB";
 };
 
-const formatDate = (timestamp: number) =>
-  new Date(timestamp).toLocaleDateString();
-
 export const FileList = () => {
   const [error, setError] = useState("");
-  const { storedFiles, removeFile, getFile } = useStoredFiles();
+  const { storedFiles, removeFile, loadFile } = useStoredFiles();
 
   const { setSelectedFile } = useSubtitles();
 
   const handleSelectFile = async (fileId: string) => {
-    const selectedFile = await getFile(fileId);
+    const selectedFile = await loadFile(fileId);
 
     if (!selectedFile) {
       console.error("File not found:", fileId);
@@ -53,23 +50,23 @@ export const FileList = () => {
       </Title>
       <ErrorMessage error={error} setError={setError} />
       <div className={styles.filesList}>
-        {storedFiles.map((file) => (
-          <ListItem
-            key={file.id}
-            title={file.name}
-            details={`${formatFileSize(file.size)} • ${formatDate(
-              file.uploadedAt
-            )}`}
-            selected={false}
-            onClick={() => handleSelectFile(file.id)}
-            button={{
-              icon: Trash2,
-              onClick: () => {
-                removeFile(file.id);
-              },
-            }}
-          />
-        ))}
+        {storedFiles
+          .sort((a, b) => b.lastUsed - a.lastUsed)
+          .map((file) => (
+            <ListItem
+              key={file.id}
+              title={file.name}
+              details={`File size: ${formatFileSize(file.size)}`}
+              selected={false}
+              onClick={() => handleSelectFile(file.id)}
+              button={{
+                icon: Trash2,
+                onClick: () => {
+                  removeFile(file.id);
+                },
+              }}
+            />
+          ))}
       </div>
     </div>
   );
