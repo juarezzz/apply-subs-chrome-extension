@@ -112,6 +112,10 @@ export const SelectVideo = () => {
 
     if (!selectedVideo || !selectedFile) return;
 
+    await chrome.tabs.sendMessage(tabId, {
+      type: "REMOVE_SUBTITLES",
+    });
+
     await chrome.tabs.sendMessage(
       tabId,
       {

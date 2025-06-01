@@ -15,7 +15,7 @@ interface SubtitleMessage {
     | "ADD_SUBTITLES"
     | "UPDATE_SUBTITLES"
     | "TOGGLE_SUBTITLES"
-    | "DESTROY_SUBTITLES"
+    | "REMOVE_SUBTITLES"
     | "UPDATE_SUBTITLE_SETTINGS";
   target?: VideoTarget;
   subtitles?: Subtitle[];
@@ -30,6 +30,7 @@ class SubtitlesManager {
   private shadowHost: HTMLDivElement | null = null;
   private shadowRoot: ShadowRoot | null = null;
   private resizeObserver: ResizeObserver | null = null;
+  private mutationObserver: MutationObserver | null = null;
   private scrollHandler: (() => void) | null = null;
   private fullscreenHandler: (() => void) | null = null;
   private isFullscreen: boolean = false;
@@ -215,13 +216,88 @@ class SubtitlesManager {
       this.handleFullscreenChange();
     };
 
-    // Add fullscreen event listeners for different browsers
     document.addEventListener("fullscreenchange", this.fullscreenHandler);
-    document.addEventListener("webkitfullscreenchange", this.fullscreenHandler);
-    document.addEventListener("mozfullscreenchange", this.fullscreenHandler);
-    document.addEventListener("MSFullscreenChange", this.fullscreenHandler);
+
+    // Add observer to detect if video is removed from DOM
+    this.addVideoRemovalObserver();
 
     return true;
+  }
+
+  private isVideoRemovedFromNode(node: Node) {
+    if (!this.video) return false;
+
+    // Check if the removed node is the video itself
+    if (node === this.video) {
+      return true;
+    }
+
+    // Check if the removed node contains our video element
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as Element;
+      return element.contains(this.video);
+    }
+
+    return false;
+  }
+
+  private addVideoRemovalObserver() {
+    if (!this.video) return;
+
+    this.mutationObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === "childList") {
+          // Check if any removed nodes contain the video element
+          for (const removedNode of mutation.removedNodes) {
+            if (this.isVideoRemovedFromNode(removedNode)) {
+              this.destroy();
+              return;
+            }
+          }
+        }
+      }
+    });
+
+    // Start observing the document for changes
+    this.mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  private removeEventListeners() {
+    if (this.video) {
+      this.video.removeEventListener(
+        "timeupdate",
+        this.updateSubtitleContent.bind(this)
+      );
+    }
+
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = null;
+    }
+
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+      this.mutationObserver = null;
+    }
+
+    if (this.scrollHandler) {
+      window.removeEventListener("scroll", this.scrollHandler);
+      document.removeEventListener("scroll", this.scrollHandler);
+      this.scrollHandler = null;
+    }
+
+    if (this.fullscreenHandler) {
+      document.removeEventListener("fullscreenchange", this.fullscreenHandler);
+      this.fullscreenHandler = null;
+    }
+
+    window.removeEventListener(
+      "resize",
+      this.updateSubtitlePosition.bind(this)
+    );
   }
 
   private handleFullscreenChange() {
@@ -322,6 +398,21 @@ class SubtitlesManager {
     // Return first video if no specific target
     return videos[0] || null;
   }
+
+  destroy() {
+    // Remove all event listeners
+    this.removeEventListeners();
+
+    // Remove subtitle elements from DOM
+    this.removeSubtitleElement();
+
+    // Reset all state
+    this.subtitles = [];
+    this.video = null;
+    this.settings = null;
+    this.isHidden = false;
+    this.isFullscreen = false;
+  }
 }
 
 const subtitleManager = new SubtitlesManager();
@@ -360,6 +451,11 @@ chrome.runtime.onMessage.addListener(
 
         case "TOGGLE_SUBTITLES":
           subtitleManager.toggleSubtitles();
+          sendResponse({ success: true });
+          break;
+
+        case "REMOVE_SUBTITLES":
+          subtitleManager.destroy();
           sendResponse({ success: true });
           break;
 

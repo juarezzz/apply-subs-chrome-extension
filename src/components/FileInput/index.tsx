@@ -38,8 +38,6 @@ export const FileInput: React.FC<FileInputProps> = ({ onFilesSelected }) => {
   const validateFiles = (
     fileList: File[]
   ): { valid: File[]; error?: string } => {
-    console.log("Validating files:", fileList);
-
     const oversizedFiles = fileList.filter((file) => file.size > MAX_FILE_SIZE);
     if (oversizedFiles.length > 0) {
       const maxSizeMB = (MAX_FILE_SIZE / (1024 * 1024)).toFixed(2);

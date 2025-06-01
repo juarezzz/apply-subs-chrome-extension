@@ -47,9 +47,9 @@ export const SubtitleManager = () => {
           <p className={styles.description}>
             Subtitle appearance can be edited on the settings page. Use{" "}
             {toggleSubtitleCommand} to toggle subtitles and{" "}
-            {toggleSidebarCommand} to open or close this sidebar. If these
-            shortcuts don’t work or you want to change them, you can update them
-            on <a onClick={openShortcutsPage}>this page</a>.
+            {toggleSidebarCommand} to open this sidebar. If these shortcuts
+            don’t work or you want to change them, you can update them on{" "}
+            <a onClick={openShortcutsPage}>this page</a>.
           </p>
         </div>
       </div>
