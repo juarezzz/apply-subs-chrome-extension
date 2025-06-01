@@ -2,7 +2,21 @@ import { Subtitle } from "../context/subtitles";
 import { SubtitleSettings } from "../context/settings";
 import { isValidTimeOffset } from "../utils/isValidTimeOffset";
 import { binarySearch } from "../utils/binarySearch";
-import { DEFAULT_SUBTITLE_SETTINGS } from "../utils/defaultSubtitleSettings";
+
+const DEFAULT_SUBTITLE_SETTINGS = {
+  syncOffset: 0,
+  fontSize: 24,
+  fontColor: "#ffffff",
+  background: false,
+  backgroundColor: "#000000",
+  fontFamily: "Arial, sans-serif",
+  offsetFromBottom: 50,
+  textShadow: true,
+  shadowColor: "#000000",
+  verticalPadding: 8,
+  horizontalPadding: 8,
+  pointerEvents: true,
+};
 
 interface VideoTarget {
   frameId: number;
@@ -430,6 +444,8 @@ chrome.runtime.onMessage.addListener(
               .catch((error) => {
                 sendResponse({ success: false, error: error.message });
               });
+
+            return true; // Indicate async response
           } else {
             sendResponse({
               success: false,

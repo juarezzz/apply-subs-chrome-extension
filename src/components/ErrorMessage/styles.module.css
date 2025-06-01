@@ -12,12 +12,12 @@
 
 .errorText {
   font-size: 14px;
-  color: var(--error-text-color);
+  color: var(--red);
   margin: 0;
 }
 
 .closeButton {
-  color: var(--error-text-color);
+  color: var(--red);
   cursor: pointer;
   width: 16px;
   height: 16px;

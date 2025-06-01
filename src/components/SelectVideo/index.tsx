@@ -10,6 +10,7 @@ import { toggleVideoHighlight } from "../../scripts/toggleVideoHighlight";
 import { findSubtitleElement } from "../../scripts/findSubtitleElement";
 import { useStoredFiles } from "../../context/storedFiles";
 import { parseSRT } from "../../utils/parseSRT";
+import { shallowComparison } from "../../utils/shallowComparison";
 
 interface VideoElement {
   videoId: string;
@@ -18,6 +19,11 @@ interface VideoElement {
   frameId: number;
   origin?: string;
   title?: string;
+}
+
+interface SubtitlesConfig {
+  subtitlesFileId: string;
+  currentVideo: VideoElement;
 }
 
 async function getCurrentTab() {
@@ -30,9 +36,17 @@ export const SelectVideo = () => {
   const { loadFile } = useStoredFiles();
   const [videoElements, setVideoElements] = useState<VideoElement[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<VideoElement>();
-  const [displayingSubtitles, setDisplayingSubtitles] = useState(false);
+  const [currentSubtitlesConfig, setCurrentSubtitlesConfig] =
+    useState<SubtitlesConfig>();
   const [isScanning, setIsScanning] = useState(false);
   const [animate, setAnimate] = useState(false);
+
+  const isCurrentActiveConfig =
+    selectedFile &&
+    currentSubtitlesConfig?.subtitlesFileId === selectedFile.id &&
+    currentSubtitlesConfig?.currentVideo &&
+    selectedVideo &&
+    shallowComparison(currentSubtitlesConfig.currentVideo, selectedVideo);
 
   const detectVideoElements = async () => {
     setIsScanning(true);
@@ -80,10 +94,7 @@ export const SelectVideo = () => {
 
     const { id: tabId } = await getCurrentTab();
 
-    if (!tabId) {
-      console.error("No active tab found");
-      return;
-    }
+    if (!tabId) return;
 
     chrome.scripting.executeScript({
       target: { tabId, frameIds: [video.frameId] },
@@ -97,10 +108,7 @@ export const SelectVideo = () => {
 
     const { id: tabId } = await getCurrentTab();
 
-    if (!tabId) {
-      console.error("No active tab found");
-      return;
-    }
+    if (!tabId) return;
 
     chrome.scripting.executeScript({
       target: { tabId, frameIds: [video.frameId] },
@@ -109,13 +117,24 @@ export const SelectVideo = () => {
     });
   };
 
+  const handleRemoveSubtitles = async () => {
+    const { id: tabId } = await getCurrentTab();
+
+    if (!tabId) return;
+
+    if (!selectedVideo || !selectedFile) return;
+
+    await chrome.tabs.sendMessage(tabId, {
+      type: "REMOVE_SUBTITLES",
+    });
+
+    setCurrentSubtitlesConfig(undefined);
+  };
+
   const handleShowSubtitles = async () => {
     const { id: tabId } = await getCurrentTab();
 
-    if (!tabId) {
-      console.error("No active tab found");
-      return;
-    }
+    if (!tabId) return;
 
     if (!selectedVideo || !selectedFile) return;
 
@@ -138,7 +157,12 @@ export const SelectVideo = () => {
       { frameId: selectedVideo.frameId }
     );
 
-    setDisplayingSubtitles(response?.success);
+    if (!response?.success) return;
+
+    setCurrentSubtitlesConfig({
+      subtitlesFileId: selectedFile.id,
+      currentVideo: selectedVideo,
+    });
   };
 
   const handleVideoSelection = (video: VideoElement) => setSelectedVideo(video);
@@ -197,7 +221,12 @@ export const SelectVideo = () => {
 
       setSelectedVideo(video);
 
-      setDisplayingSubtitles(!!video);
+      if (!video) return;
+
+      setCurrentSubtitlesConfig({
+        subtitlesFileId,
+        currentVideo: video,
+      });
     };
 
     checkActiveSubtitles();
@@ -206,6 +235,14 @@ export const SelectVideo = () => {
   useEffect(() => {
     detectVideoElements();
   }, []);
+
+  const getButtonText = () => {
+    if (!selectedFile) return "Select subtitles";
+
+    if (isCurrentActiveConfig) return "Remove Subtitles";
+
+    return "Show Subtitles";
+  };
 
   return (
     <div>
@@ -253,11 +290,17 @@ export const SelectVideo = () => {
 
         {selectedVideo && (
           <button
-            onClick={handleShowSubtitles}
-            className={styles.showSubtitlesButton}
+            onClick={
+              isCurrentActiveConfig
+                ? handleRemoveSubtitles
+                : handleShowSubtitles
+            }
+            className={`${styles.showSubtitlesButton} ${
+              isCurrentActiveConfig ? styles.remove : ""
+            }`}
             disabled={!selectedFile}
           >
-            {!selectedFile ? "Select subtitles" : "Show Subtitles"}
+            {getButtonText()}
           </button>
         )}
       </div>

@@ -44,6 +44,15 @@
   background-color: #f0f0f0;
 }
 
+.showSubtitlesButton.remove {
+  background-color: var(--red);
+  color: var(--secondary-color);
+}
+
+.showSubtitlesButton.remove:hover:not(:disabled) {
+  background-color: var(--red-hover);
+}
+
 @keyframes spin {
   100% {
     transform: rotate(-360deg);
