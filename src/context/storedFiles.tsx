@@ -113,26 +113,24 @@ export const StoredFilesProvider = ({ children }: { children: ReactNode }) => {
     [storedFiles]
   );
 
-  const loadFile = useCallback(
-    async (id: string) => {
-      const result = await chrome.storage.local.get(id);
+  const loadFile = useCallback(async (id: string) => {
+    const result = await chrome.storage.local.get(id);
 
-      const file = result[id] as StoredFile | undefined;
+    const file = result[id] as StoredFile | undefined;
 
-      if (file) {
-        const updatedFiles = storedFiles.map((f) =>
+    if (file)
+      setStoredFiles((currentFiles) => {
+        const updatedFiles = currentFiles.map((f) =>
           f.id === id ? { ...f, lastUsed: Date.now() } : f
         );
 
         chrome.storage.local.set({ filesList: updatedFiles });
 
-        setStoredFiles(updatedFiles);
-      }
+        return updatedFiles;
+      });
 
-      return file;
-    },
-    [storedFiles]
-  );
+    return file;
+  }, []);
 
   const value = useMemo(
     () => ({

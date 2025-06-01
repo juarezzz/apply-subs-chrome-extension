@@ -7,10 +7,14 @@ import { IconButton } from "../IconButton";
 import { Title } from "../Title";
 import { ListItem } from "../ListItem";
 import { toggleVideoHighlight } from "../../scripts/toggleVideoHighlight";
+import { findSubtitleElement } from "../../scripts/findSubtitleElement";
+import { useStoredFiles } from "../../context/storedFiles";
+import { parseSRT } from "../../utils/parseSRT";
 
 interface VideoElement {
   videoId: string;
   videoIndex: number;
+  videoSrc: string;
   frameId: number;
   origin?: string;
   title?: string;
@@ -22,9 +26,11 @@ async function getCurrentTab() {
 }
 
 export const SelectVideo = () => {
-  const { selectedFile } = useSubtitles();
+  const { selectedFile, setSelectedFile } = useSubtitles();
+  const { loadFile } = useStoredFiles();
   const [videoElements, setVideoElements] = useState<VideoElement[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<VideoElement>();
+  const [displayingSubtitles, setDisplayingSubtitles] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [animate, setAnimate] = useState(false);
 
@@ -51,9 +57,10 @@ export const SelectVideo = () => {
       );
 
       const videoElements = nonEmptyResults.flatMap(({ frameId, result }) =>
-        result!.map(({ id, origin, title }, i) => ({
+        result!.map(({ id, origin, title, src }, i) => ({
           videoId: id,
           videoIndex: i,
+          videoSrc: src,
           frameId,
           origin,
           title,
@@ -116,7 +123,7 @@ export const SelectVideo = () => {
       type: "REMOVE_SUBTITLES",
     });
 
-    await chrome.tabs.sendMessage(
+    const response = await chrome.tabs.sendMessage(
       tabId,
       {
         type: "ADD_SUBTITLES",
@@ -126,12 +133,75 @@ export const SelectVideo = () => {
           frameId: selectedVideo.frameId,
         },
         subtitles: selectedFile.content,
+        subtitlesFileId: selectedFile.id,
       },
       { frameId: selectedVideo.frameId }
     );
+
+    setDisplayingSubtitles(response?.success);
   };
 
   const handleVideoSelection = (video: VideoElement) => setSelectedVideo(video);
+
+  useEffect(() => {
+    if (!videoElements.length) return;
+
+    const checkActiveSubtitles = async () => {
+      const { id: tabId } = await getCurrentTab();
+
+      if (!tabId) {
+        console.error("No active tab found");
+        return;
+      }
+
+      const results = await chrome.scripting.executeScript({
+        target: { tabId, allFrames: true },
+        func: findSubtitleElement,
+      });
+
+      const frameWithSubtitles = results.find(({ result }) => result);
+
+      if (!frameWithSubtitles) return;
+
+      const { frameId } = frameWithSubtitles;
+
+      const response = await chrome.tabs.sendMessage(
+        tabId,
+        {
+          type: "CHECK_ACTIVE_SUBTITLES",
+        },
+        { frameId: frameWithSubtitles.frameId }
+      );
+
+      if (!response || !response.subtitlesFileId) return;
+
+      const { videoSrc, videoId, subtitlesFileId } = response;
+
+      const file = await loadFile(subtitlesFileId);
+
+      if (!file) return;
+
+      const subtitles = parseSRT(file.content);
+
+      setSelectedFile({
+        ...file,
+        content: subtitles,
+      });
+
+      const video = videoElements.find(
+        (v) =>
+          v.frameId === frameId &&
+          v.videoId === videoId &&
+          v.videoSrc === videoSrc
+      );
+
+      setSelectedVideo(video);
+
+      setDisplayingSubtitles(!!video);
+    };
+
+    checkActiveSubtitles();
+  }, [loadFile, setSelectedFile, videoElements]);
 
   useEffect(() => {
     detectVideoElements();

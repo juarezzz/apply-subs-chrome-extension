@@ -2,6 +2,7 @@ import { Subtitle } from "../context/subtitles";
 import { SubtitleSettings } from "../context/settings";
 import { isValidTimeOffset } from "../utils/isValidTimeOffset";
 import { binarySearch } from "../utils/binarySearch";
+import { DEFAULT_SUBTITLE_SETTINGS } from "../utils/defaultSubtitleSettings";
 
 interface VideoTarget {
   frameId: number;
@@ -13,11 +14,12 @@ interface VideoTarget {
 interface SubtitleMessage {
   type:
     | "ADD_SUBTITLES"
-    | "UPDATE_SUBTITLES"
+    | "CHECK_ACTIVE_SUBTITLES"
     | "TOGGLE_SUBTITLES"
     | "REMOVE_SUBTITLES"
     | "UPDATE_SUBTITLE_SETTINGS";
   target?: VideoTarget;
+  subtitlesFileId?: string;
   subtitles?: Subtitle[];
   visible?: boolean;
   settings?: SubtitleSettings;
@@ -25,6 +27,7 @@ interface SubtitleMessage {
 
 class SubtitlesManager {
   private subtitles: Subtitle[] = [];
+  private subtitlesFileId: string | null = null;
   private video: HTMLVideoElement | null = null;
   private subtitleElement: HTMLDivElement | null = null;
   private shadowHost: HTMLDivElement | null = null;
@@ -37,10 +40,14 @@ class SubtitlesManager {
   private settings: SubtitleSettings | null = null;
   private isHidden = false;
 
-  async init(target: VideoTarget, subtitles: Subtitle[]) {
+  async init(
+    target: VideoTarget,
+    subtitles: Subtitle[],
+    subtitlesFileId: string
+  ) {
     this.subtitles = subtitles;
+    this.subtitlesFileId = subtitlesFileId;
 
-    // Load settings from storage
     await this.loadSettings();
 
     this.video = this.findTargetVideo(target);
@@ -55,39 +62,56 @@ class SubtitlesManager {
     return true;
   }
 
-  private async loadSettings() {
-    try {
-      const result = await chrome.storage.local.get("subtitleSettings");
-      if (result.subtitleSettings) {
-        this.settings = result.subtitleSettings;
-      } else {
-        // Default settings if none are saved
-        this.settings = {
-          syncOffset: 0,
-          fontSize: 20,
-          fontColor: "#ffffff",
-          background: false,
-          backgroundColor: "#000000",
-          fontFamily: "Arial, sans-serif",
-          offsetFromBottom: 60,
-          textShadow: true,
-          shadowColor: "#000000",
-          verticalPadding: 8,
-          horizontalPadding: 8,
-          pointerEvents: true,
-        };
-      }
-    } catch (error) {
-      console.error("Error loading subtitle settings:", error);
-    }
-  }
-
   updateSettings(settings: SubtitleSettings) {
     this.settings = settings;
     if (this.subtitleElement) {
       this.applyStyles();
       this.updateSubtitlePosition();
       this.updateSubtitleContent();
+    }
+  }
+
+  toggleSubtitles() {
+    if (!this.subtitleElement) return;
+
+    this.isHidden = !this.isHidden;
+
+    this.subtitleElement.style.display = this.isHidden ? "none" : "block";
+
+    this.updateSubtitleContent();
+  }
+
+  getActiveSubtitles() {
+    if (!this.subtitleElement) return { video: null, subtitlesFileId: null };
+
+    return {
+      videoSrc: this.video?.src,
+      videoId: this.video?.id,
+      subtitlesFileId: this.subtitlesFileId,
+    };
+  }
+
+  destroy() {
+    this.removeEventListeners();
+    this.removeSubtitleElement();
+
+    this.subtitles = [];
+    this.video = null;
+    this.settings = null;
+    this.isHidden = false;
+    this.isFullscreen = false;
+  }
+
+  private async loadSettings() {
+    try {
+      const result = await chrome.storage.local.get("subtitleSettings");
+      if (result.subtitleSettings) {
+        this.settings = result.subtitleSettings;
+      } else {
+        this.settings = DEFAULT_SUBTITLE_SETTINGS;
+      }
+    } catch (error) {
+      console.error("Error loading subtitle settings:", error);
     }
   }
 
@@ -99,7 +123,7 @@ class SubtitlesManager {
 
     // Create shadow host element
     this.shadowHost = document.createElement("div");
-    this.shadowHost.id = "subtitle-shadow-host";
+    this.shadowHost.id = "subtitles-display-extension-shadow-host";
 
     // Style the shadow host - it will be positioned where subtitles should appear
     this.shadowHost.style.cssText = `
@@ -113,7 +137,7 @@ class SubtitlesManager {
 
     // Create the actual subtitle element
     this.subtitleElement = document.createElement("div");
-    this.subtitleElement.id = "subtitle-element";
+    this.subtitleElement.id = "subtitles-display-extension-subtitle-element";
 
     this.applyStyles();
     this.updateSubtitlePosition();
@@ -125,6 +149,17 @@ class SubtitlesManager {
     // Append shadow host to appropriate container based on fullscreen state
     this.appendSubtitleElement();
     return true;
+  }
+
+  private removeSubtitleElement() {
+    if (this.shadowHost) {
+      this.shadowHost.remove();
+      this.shadowHost = null;
+    }
+
+    if (this.shadowRoot) this.shadowRoot = null;
+
+    if (this.subtitleElement) this.subtitleElement = null;
   }
 
   private applyStyles() {
@@ -173,15 +208,58 @@ class SubtitlesManager {
     else document.body.appendChild(this.shadowHost);
   }
 
-  private removeSubtitleElement() {
-    if (this.shadowHost) {
-      this.shadowHost.remove();
-      this.shadowHost = null;
+  private updateSubtitlePosition() {
+    if (!this.shadowHost || !this.video || !this.settings) return false;
+
+    try {
+      const videoRect = this.video.getBoundingClientRect();
+
+      const subtitleTop =
+        videoRect.bottom - this.settings.offsetFromBottom + window.scrollY;
+      const subtitleLeft = videoRect.left + videoRect.width / 2;
+
+      this.shadowHost.style.top = `${subtitleTop}px`;
+      this.shadowHost.style.left = `${subtitleLeft}px`;
+
+      return true;
+    } catch (error) {
+      console.error("Error updating subtitle position:", error);
+      return false;
     }
+  }
 
-    if (this.shadowRoot) this.shadowRoot = null;
+  private updateSubtitleContent() {
+    if (!this.subtitleElement || !this.video) return false;
 
-    if (this.subtitleElement) this.subtitleElement = null;
+    try {
+      const currentTime = this.video.currentTime;
+
+      const timeOffset = isValidTimeOffset(this.settings?.syncOffset)
+        ? this.settings.syncOffset
+        : 0;
+
+      const adjustedTime = currentTime + timeOffset;
+
+      const currentSubtitle = binarySearch(this.subtitles, (sub) => {
+        if (sub.start > adjustedTime) return 1;
+        if (sub.end < adjustedTime) return -1;
+        return 0;
+      });
+
+      if (!currentSubtitle) {
+        this.subtitleElement.textContent = null;
+        this.subtitleElement.style.display = "none";
+        return false;
+      }
+
+      if (!this.isHidden) this.subtitleElement.style.display = "block";
+
+      this.subtitleElement.textContent = currentSubtitle.text;
+      return true;
+    } catch (error) {
+      console.error("Error updating subtitle content:", error);
+      return false;
+    }
   }
 
   private attachEventListeners() {
@@ -222,47 +300,6 @@ class SubtitlesManager {
     this.addVideoRemovalObserver();
 
     return true;
-  }
-
-  private isVideoRemovedFromNode(node: Node) {
-    if (!this.video) return false;
-
-    // Check if the removed node is the video itself
-    if (node === this.video) {
-      return true;
-    }
-
-    // Check if the removed node contains our video element
-    if (node.nodeType === Node.ELEMENT_NODE) {
-      const element = node as Element;
-      return element.contains(this.video);
-    }
-
-    return false;
-  }
-
-  private addVideoRemovalObserver() {
-    if (!this.video) return;
-
-    this.mutationObserver = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.type === "childList") {
-          // Check if any removed nodes contain the video element
-          for (const removedNode of mutation.removedNodes) {
-            if (this.isVideoRemovedFromNode(removedNode)) {
-              this.destroy();
-              return;
-            }
-          }
-        }
-      }
-    });
-
-    // Start observing the document for changes
-    this.mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
   }
 
   private removeEventListeners() {
@@ -320,68 +357,45 @@ class SubtitlesManager {
     }
   }
 
-  private updateSubtitlePosition() {
-    if (!this.shadowHost || !this.video || !this.settings) return false;
+  private addVideoRemovalObserver() {
+    if (!this.video) return;
 
-    try {
-      const videoRect = this.video.getBoundingClientRect();
-
-      const subtitleTop =
-        videoRect.bottom - this.settings.offsetFromBottom + window.scrollY;
-      const subtitleLeft = videoRect.left + videoRect.width / 2;
-
-      this.shadowHost.style.top = `${subtitleTop}px`;
-      this.shadowHost.style.left = `${subtitleLeft}px`;
-
-      return true;
-    } catch (error) {
-      console.error("Error updating subtitle position:", error);
-      return false;
-    }
-  }
-
-  private updateSubtitleContent() {
-    if (!this.subtitleElement || !this.video) return false;
-
-    try {
-      const currentTime = this.video.currentTime;
-
-      const timeOffset = isValidTimeOffset(this.settings?.syncOffset)
-        ? this.settings.syncOffset
-        : 0;
-
-      const adjustedTime = currentTime + timeOffset;
-
-      const currentSubtitle = binarySearch(this.subtitles, (sub) => {
-        if (sub.start > adjustedTime) return 1;
-        if (sub.end < adjustedTime) return -1;
-        return 0;
-      });
-
-      if (!currentSubtitle) {
-        this.subtitleElement.textContent = null;
-        this.subtitleElement.style.display = "none";
-        return false;
+    this.mutationObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === "childList") {
+          // Check if any removed nodes contain the video element
+          for (const removedNode of mutation.removedNodes) {
+            if (this.isVideoRemovedFromNode(removedNode)) {
+              this.destroy();
+              return;
+            }
+          }
+        }
       }
+    });
 
-      if (!this.isHidden) this.subtitleElement.style.display = "block";
-
-      this.subtitleElement.textContent = currentSubtitle.text;
-      return true;
-    } catch (error) {
-      console.error("Error updating subtitle content:", error);
-      return false;
-    }
+    // Start observing the document for changes
+    this.mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
   }
 
-  toggleSubtitles() {
-    if (!this.subtitleElement) return;
+  private isVideoRemovedFromNode(node: Node) {
+    if (!this.video) return false;
 
-    this.isHidden = !this.isHidden;
+    // Check if the removed node is the video itself
+    if (node === this.video) {
+      return true;
+    }
 
-    this.subtitleElement.style.display = this.isHidden ? "none" : "block";
+    // Check if the removed node contains our video element
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as Element;
+      return element.contains(this.video);
+    }
 
-    this.updateSubtitleContent();
+    return false;
   }
 
   private findTargetVideo(target: VideoTarget): HTMLVideoElement | null {
@@ -398,34 +412,18 @@ class SubtitlesManager {
     // Return first video if no specific target
     return videos[0] || null;
   }
-
-  destroy() {
-    // Remove all event listeners
-    this.removeEventListeners();
-
-    // Remove subtitle elements from DOM
-    this.removeSubtitleElement();
-
-    // Reset all state
-    this.subtitles = [];
-    this.video = null;
-    this.settings = null;
-    this.isHidden = false;
-    this.isFullscreen = false;
-  }
 }
 
 const subtitleManager = new SubtitlesManager();
 
-// Message listener
 chrome.runtime.onMessage.addListener(
   (message: SubtitleMessage, _, sendResponse) => {
     try {
       switch (message.type) {
         case "ADD_SUBTITLES":
-          if (message.target && message.subtitles) {
+          if (message.target && message.subtitles && message.subtitlesFileId) {
             subtitleManager
-              .init(message.target, message.subtitles)
+              .init(message.target, message.subtitles, message.subtitlesFileId)
               .then((success) => {
                 sendResponse({ success });
               })
@@ -458,6 +456,16 @@ chrome.runtime.onMessage.addListener(
           subtitleManager.destroy();
           sendResponse({ success: true });
           break;
+
+        case "CHECK_ACTIVE_SUBTITLES": {
+          const activeSubtitles = subtitleManager.getActiveSubtitles();
+
+          sendResponse({
+            success: true,
+            ...activeSubtitles,
+          });
+          break;
+        }
 
         default:
           sendResponse({ success: false, error: "Unknown message type" });

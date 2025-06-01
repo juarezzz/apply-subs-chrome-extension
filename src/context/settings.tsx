@@ -6,6 +6,7 @@ import {
   useEffect,
   useCallback,
 } from "react";
+import { DEFAULT_SUBTITLE_SETTINGS } from "../utils/defaultSubtitleSettings";
 
 export interface SubtitleSettings {
   syncOffset: number; // in seconds
@@ -21,21 +22,6 @@ export interface SubtitleSettings {
   horizontalPadding: number; // in pixels
   pointerEvents: boolean; // allows text selection
 }
-
-export const DEFAULT_SETTINGS: SubtitleSettings = {
-  syncOffset: 0,
-  fontSize: 20,
-  fontColor: "#ffffff",
-  background: false,
-  backgroundColor: "#000000",
-  fontFamily: "Arial, sans-serif",
-  offsetFromBottom: 60,
-  textShadow: true,
-  shadowColor: "#000000",
-  verticalPadding: 8,
-  horizontalPadding: 8,
-  pointerEvents: true,
-};
 
 interface SettingsContextType {
   settings: SubtitleSettings;
@@ -56,7 +42,9 @@ export const useSettings = () => {
 };
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
-  const [settings, setSettings] = useState<SubtitleSettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<SubtitleSettings>(
+    DEFAULT_SUBTITLE_SETTINGS
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -64,7 +52,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       .get("subtitleSettings")
       .then((result) => {
         if (result.subtitleSettings) {
-          setSettings({ ...DEFAULT_SETTINGS, ...result.subtitleSettings });
+          setSettings({
+            ...DEFAULT_SUBTITLE_SETTINGS,
+            ...result.subtitleSettings,
+          });
         }
       })
       .catch((error) => {
